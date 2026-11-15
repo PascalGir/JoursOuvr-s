@@ -1,5 +1,5 @@
-import { COUNTRIES, computeRange, workingDays, daysInMonth } from './holidays.js?v=1.3.0';
-import { VERSION } from './version.js?v=1.3.0';
+import { COUNTRIES, computeRange, workingDays, daysInMonth } from './holidays.js?v=1.4.0';
+import { VERSION } from './version.js?v=1.4.0';
 
 const MOIS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août',
   'septembre', 'octobre', 'novembre', 'décembre'];
@@ -26,7 +26,12 @@ const years = [];
 for (let y = thisYear - 10; y <= thisYear + 15; y++) years.push([y, y]);
 fillSelect($('y1'), years);
 fillSelect($('y2'), years);
-fillSelect($('pays'), Object.entries(COUNTRIES).map(([code, c]) => [code, c.nom]));
+// Suisse et France en tête, puis les autres pays par ordre alphabétique.
+const paysOrdre = Object.entries(COUNTRIES).sort(([a, ca], [b, cb]) => {
+  const prio = (k) => ['CH', 'FR'].indexOf(k) === -1 ? 9 : ['CH', 'FR'].indexOf(k);
+  return prio(a) - prio(b) || ca.nom.localeCompare(cb.nom, 'fr');
+});
+fillSelect($('pays'), paysOrdre.map(([code, c]) => [code, c.nom]));
 
 // Liste des régions (canton, zone, Land) du pays choisi ; masquée s'il n'y en a qu'une.
 function fillRegions(country, wanted) {
@@ -79,6 +84,8 @@ $('conges').value = conges;
 $('version').textContent = VERSION;
 
 const excludedKey = (country, reg) => `exclus-${country}-${reg}`;
+const includedKey = (country, reg) => `inclus-${country}-${reg}`;
+const getIncluded = (country, reg) => store.get(includedKey(country, reg), []);
 function getExcluded(country, reg) {
   // Compatibilité : avant la v1.3.0, les fériés décochés suisses étaient enregistrés sous « exclus-<canton> ».
   return store.get(excludedKey(country, reg), country === 'CH' ? store.get(`exclus-${reg}`, []) : []);
@@ -129,10 +136,11 @@ function render() {
   store.set(`region-${s.pays}`, s.region);
   store.set('taux', s.taux);
   const excluded = new Set(getExcluded(s.pays, s.region));
+  const included = new Set(getIncluded(s.pays, s.region));
 
   let res, net;
   try {
-    res = computeRange({ from: s.from, to: s.to, country: s.pays, region: s.region, excluded });
+    res = computeRange({ from: s.from, to: s.to, country: s.pays, region: s.region, excluded, included });
     net = workingDays({ ouvres: res.totals.ouvres, taux: s.taux, conges: s.conges });
   } catch (e) {
     $('err').textContent = e.message;
@@ -174,7 +182,7 @@ function render() {
   $('hol').innerHTML = res.holidays.length ? res.holidays.map((h) => `
     <li class="${h.compte ? '' : 'off'}">
       <label>
-        <input type="checkbox" class="no-print" data-id="${h.id}" ${h.compte ? 'checked' : ''}>
+        <input type="checkbox" class="no-print" data-id="${h.id}"${h.optionnel ? ' data-opt="1"' : ''} ${h.compte ? 'checked' : ''}>
         <span class="h-date">${h.date.toLocaleDateString('fr', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}</span>
         <span class="h-nom">${h.nom}</span>
         ${h.weekend ? '<span class="tag">week-end</span>' : ''}
@@ -225,10 +233,17 @@ $('conges').addEventListener('input', render);
 $('hol').addEventListener('change', (e) => {
   const id = e.target.dataset && e.target.dataset.id;
   if (!id) return;
-  const key = excludedKey($('pays').value, $('ct').value);
-  const set = new Set(getExcluded($('pays').value, $('ct').value));
-  if (e.target.checked) set.delete(id); else set.add(id);
-  store.set(key, [...set]);
+  const p = $('pays').value, reg = $('ct').value;
+  if (e.target.dataset.opt) {
+    // Férié non légal : coché = compté.
+    const set = new Set(getIncluded(p, reg));
+    if (e.target.checked) set.add(id); else set.delete(id);
+    store.set(includedKey(p, reg), [...set]);
+  } else {
+    const set = new Set(getExcluded(p, reg));
+    if (e.target.checked) set.delete(id); else set.add(id);
+    store.set(excludedKey(p, reg), [...set]);
+  }
   render();
 });
 

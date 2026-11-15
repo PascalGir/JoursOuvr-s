@@ -5,7 +5,8 @@ Site statique qui calcule le nombre de jours ouvrés entre deux dates, jours fé
 - la **Suisse** (26 cantons)
 - la **France** (Métropole, Alsace-Moselle, Guadeloupe, Martinique, Guyane, La Réunion, Mayotte)
 - l'**Allemagne** (16 Länder)
-- l'**Autriche**, la **Belgique**, l'**Italie** et le **Luxembourg**
+- l'**Espagne** (17 communautés autonomes, Ceuta, Melilla ; calendrier officiel du BOE pour 2026 et 2027, estimation pour les autres années)
+- l'**Autriche**, la **Belgique**, l'**Italie**, le **Liechtenstein** et le **Luxembourg**
 
 ## Fonctions
 
@@ -14,7 +15,7 @@ Site statique qui calcule le nombre de jours ouvrés entre deux dates, jours fé
 - **Taux d'activité** : nombre de jours proratisé (par ex. 80 %)
 - **Congés à déduire** : jours de congés pris sur la période (par demi-journée), pour obtenir les jours réellement à travailler
 - Détail **mois par mois**, liste des fériés de la période et **calendrier** coloré
-- Fériés **personnalisables** : décocher un férié non chômé (mémorisé par canton dans le navigateur)
+- Fériés **personnalisables** : décocher un férié non chômé, ou cocher un férié usuel non légal (mémorisé par pays et région dans le navigateur)
 - **Export CSV** (séparateur `;`, compatible Excel) et impression / PDF
 - Lien partageable : la période et le canton sont dans l'URL (`?du=2027-01-01&au=2027-12-31&pays=CH&region=VD&taux=80&conges=20`)
 
@@ -59,6 +60,8 @@ tests/              tests Node
 - France : le lundi de Pentecôte est compté comme férié (à décocher si c'est la journée de solidarité travaillée).
 - Allemagne : l'Assomption en Bavière ne concerne que les communes à majorité catholique ; les fêtes purement locales (Augsbourg) ne sont pas comptées.
 - Autriche, Italie : les fêtes de saints patrons régionaux ou communaux ne sont pas comptées.
+- Espagne : les 2 fêtes locales de chaque commune et les fêtes propres à chaque île des Canaries ne sont pas comptées. Le calendrier officiel est à ajouter chaque année dans `ES_OFFICIEL` (`js/holidays.js`) dès sa publication au BOE (en général en octobre).
+- Liechtenstein : les jours usuels non légaux sont proposés mais non comptés par défaut.
 
 La liste des fériés est ajustable directement dans le site.
 

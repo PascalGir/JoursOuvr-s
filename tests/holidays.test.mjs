@@ -126,3 +126,25 @@ test('autres pays : nombre de fériés légaux', () => {
     for (const r of Object.keys(c.regions)) assert.ok(holidaysFor(2027, code, r).length >= 8, `${code}-${r}`);
   }
 });
+
+test('Espagne : calendrier officiel 2026 et 2027, estimation sinon', () => {
+  // Madrid 2027 : 261 jours de semaine − 10 fériés en semaine (BOE-A-2026-21254)
+  const md = computeRange({ from: { y: 2027, m: 1 }, to: { y: 2027, m: 12 }, country: 'ES', region: 'MD' });
+  assert.equal(md.totals.feries, 10);
+  assert.equal(md.totals.ouvres, 251);
+  assert.ok(isoList(2027, 'ES', 'MD').includes('2027-08-16 lunes-asuncion'));
+  const ct = isoList(2027, 'ES', 'CT');
+  assert.ok(ct.includes('2027-09-11 diada') && ct.includes('2027-03-29 lunes-pascua'));
+  assert.ok(!ct.some((x) => x.includes('jueves-santo')));
+  assert.ok(isoList(2026, 'ES', 'AN').includes('2026-12-07 lunes-constitucion'));
+  assert.ok(holidaysFor(2030, 'ES', 'MD').every((h) => h.nom.includes('estimation')));
+  for (const r of Object.keys(COUNTRIES.ES.regions)) assert.equal(holidaysFor(2027, 'ES', r).length >= 11, true, r);
+});
+
+test('Liechtenstein : fériés non légaux proposés mais non comptés par défaut', () => {
+  const base = computeRange({ from: { y: 2027, m: 1 }, to: { y: 2027, m: 12 }, country: 'LI', region: 'ALL' });
+  assert.equal(base.totals.ouvres, 252);
+  assert.equal(base.holidays.filter((h) => h.optionnel && !h.compte).length, 5);
+  const plus = computeRange({ from: { y: 2027, m: 1 }, to: { y: 2027, m: 12 }, country: 'LI', region: 'ALL', included: new Set(['heiligabend', 'silvester']) });
+  assert.equal(plus.totals.ouvres, 250);
+});

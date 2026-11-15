@@ -10,6 +10,20 @@ Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) et la nu
 
 La version affichée en bas du site provient de `js/version.js`. Pour publier une nouvelle version : `sh scripts/version.sh X.Y.Z`, puis compléter ce fichier.
 
+## [1.4.0] – 2026-11-15
+
+### Ajouté
+- **Espagne** : choix parmi les 17 communautés autonomes, Ceuta et Melilla
+  - 2026 et 2027 : fériés nationaux et de la communauté d'après le **calendrier officiel du BOE** (résolutions BOE-A-2025-21667 et BOE-A-2026-21254), y compris les reports au lundi (lendemain de la Toussaint, de la Constitution, de l'Assomption…)
+  - Autres années : estimation à partir des fêtes habituelles, signalée par la mention « estimation » dans la liste des fériés
+- **Liechtenstein** : les 13 fériés légaux (loi sur le travail, art. 18)
+- **Fériés optionnels** : jours usuels mais non légaux, affichés dans la liste et **non comptés par défaut** ; il suffit de les cocher pour les compter (Liechtenstein : Chandeleur, Saint-Joseph, Vendredi saint, 24 et 31 décembre). Le choix est mémorisé par pays et région
+- Tests pour l'Espagne et le Liechtenstein (16 tests)
+
+### Modifié
+- Liste des pays : Suisse et France en tête, puis les autres par ordre alphabétique
+- Moteur : paramètre `included` de `computeRange()` pour les fériés optionnels ; un pays peut fournir ses fériés année par année (`yearRules`)
+
 ## [1.3.0] – 2026-11-15
 
 ### Ajouté
