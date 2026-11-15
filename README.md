@@ -7,10 +7,11 @@ Site statique qui calcule le nombre de jours ouvrés entre un mois de début et 
 - Filtre par **mois et année** de début et de fin (inclus), avec raccourcis : mois, trimestre, année en cours, année prochaine
 - Choix du **canton** (26 cantons) ; les fériés mobiles (Pâques, Ascension, Pentecôte, Fête-Dieu, Jeûne genevois, Lundi du Jeûne, Näfelser Fahrt…) sont calculés pour n'importe quelle année
 - **Taux d'activité** : nombre de jours proratisé (par ex. 80 %)
+- **Congés à déduire** : jours de congés pris sur la période (par demi-journée), pour obtenir les jours réellement à travailler
 - Détail **mois par mois**, liste des fériés de la période et **calendrier** coloré
 - Fériés **personnalisables** : décocher un férié non chômé (mémorisé par canton dans le navigateur)
 - **Export CSV** (séparateur `;`, compatible Excel) et impression / PDF
-- Lien partageable : la période et le canton sont dans l'URL (`?du=2027-01&au=2027-12&canton=VD`)
+- Lien partageable : la période et le canton sont dans l'URL (`?du=2027-01&au=2027-12&canton=VD&taux=80&conges=20`)
 
 ## Utilisation
 
@@ -25,6 +26,10 @@ python3 -m http.server 8000
 
 Le site est prévu pour **GitHub Pages** : Settings → Pages → Source « Deploy from a branch », branche `main`, dossier `/ (root)`.
 
+## Versions
+
+La version courante est affichée en bas du site. L'historique détaillé est dans [CHANGELOG.md](CHANGELOG.md). À chaque évolution : mettre à jour `js/version.js` et ajouter une entrée au changelog.
+
 ## Tests
 
 ```bash
@@ -38,6 +43,8 @@ index.html          page
 css/style.css       styles (clair / sombre, impression)
 js/holidays.js      règles des fériés par canton et calcul (module réutilisable)
 js/app.js           interface
+js/version.js       numéro de version affiché
+CHANGELOG.md        historique des versions
 tests/              tests Node
 ```
 

@@ -85,6 +85,21 @@ export function holidaysFor(year, canton) {
 }
 
 /**
+ * Jours à travailler = jours ouvrés × taux d'activité − jours de congés.
+ * @returns {{theoriques:number, conges:number, net:number}}
+ */
+export function workingDays({ ouvres, taux = 100, conges = 0 }) {
+  if (!Number.isFinite(conges) || conges < 0) throw new RangeError('Le nombre de jours de congés doit être positif.');
+  if (Math.round(conges * 2) !== conges * 2) throw new RangeError('Les congés se saisissent par demi-journée (0,5).');
+  const theoriques = Math.round(ouvres * taux * 10 / 100) / 10;
+  if (conges > theoriques) {
+    const f = (n) => String(n).replace('.', ',');
+    throw new RangeError(`Les congés (${f(conges)}) dépassent les jours ouvrés de la période (${f(theoriques)}).`);
+  }
+  return { theoriques, conges, net: Math.round((theoriques - conges) * 10) / 10 };
+}
+
+/**
  * Compte les jours ouvrés (lundi–vendredi hors fériés) entre deux mois inclus.
  * @param {{from:{y:number,m:number}, to:{y:number,m:number}, canton:string, excluded?:Set<string>}} opts
  *   m est 1–12 ; excluded contient les identifiants de fériés à ne PAS compter comme fériés.

@@ -1,0 +1,46 @@
+# Historique des versions
+
+Toutes les évolutions du site sont listées ici, de la plus récente à la plus ancienne.
+
+Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) et la numérotation suit le [versionnage sémantique](https://semver.org/lang/fr/) :
+
+- **MAJEUR** (2.0.0) : changement qui modifie le fonctionnement ou les résultats existants
+- **MINEUR** (1.1.0) : nouvelle fonctionnalité compatible avec l'existant
+- **CORRECTIF** (1.0.1) : correction d'erreur (par exemple un jour férié mal défini)
+
+La version affichée en bas du site provient de `js/version.js`, à mettre à jour en même temps que ce fichier.
+
+## [1.1.0] – 2026-11-15
+
+### Ajouté
+- Champ **« Congés à déduire »** : nombre de jours de congés pris sur la période, saisissable par demi-journée (0,5)
+- Indicateur principal **« Jours à travailler »** = jours ouvrés × taux d'activité − congés, avec le détail du calcul affiché dessous
+- Indicateur **« Congés déduits »** ; le détail du prorata est déplacé sous « Jours à travailler » et l'indicateur « Jours de week-end » est renommé « Week-end »
+- Contrôles de saisie : congés négatifs, non multiples de 0,5 ou supérieurs aux jours ouvrés de la période refusés avec un message d'erreur
+- Congés conservés dans le lien partageable (paramètre `conges`)
+- Export CSV : ajout du canton, des jours ouvrés proratisés, des congés déduits et des jours à travailler en fin de fichier ; décimales avec virgule pour Excel
+- Fonction `workingDays()` dans `js/holidays.js` et tests associés
+- Numéro de version affiché en bas de page avec lien vers cet historique (`js/version.js`)
+- Ce fichier `CHANGELOG.md`
+
+### Modifié
+- L'indicateur mis en avant (encadré rouge) est désormais « Jours à travailler » ; « Jours ouvrés » devient un indicateur secondaire
+
+## [1.0.0] – 2026-11-15
+
+Première version publiée.
+
+### Ajouté
+- Page unique, sans dépendance, prête pour GitHub Pages (`index.html`, `css/style.css`, `js/`)
+- Filtre par **mois et année de début** et **mois et année de fin** (inclus), avec raccourcis : mois en cours, trimestre en cours, année en cours, année prochaine
+- Choix parmi les **26 cantons**, avec leurs jours fériés officiels
+- Calcul automatique des fériés mobiles pour toute année : Vendredi saint, lundi de Pâques, Ascension, lundi de Pentecôte, Fête-Dieu, Jeûne genevois, lundi du Jeûne fédéral, Näfelser Fahrt
+- Indicateurs : jours ouvrés, fériés tombant en semaine, jours de week-end, jours calendaires
+- **Taux d'activité** avec nombre de jours proratisé
+- Détail des jours ouvrés **mois par mois** sous forme de barres
+- Liste des **jours fériés de la période**, avec possibilité d'en décocher (mémorisé par canton dans le navigateur)
+- **Calendrier** mensuel coloré (ouvré, férié, week-end), jusqu'à 36 mois
+- **Export CSV** (séparateur `;`, compatible Excel) et **impression / PDF**
+- Lien partageable : période, canton et taux dans l'URL
+- Thème clair et sombre automatique, affichage mobile
+- Tests Node (`npm test`) : dates de Pâques, fériés mobiles, fériés nationaux des 26 cantons, total Vaud 2026, exclusion d'un férié, intervalle inversé

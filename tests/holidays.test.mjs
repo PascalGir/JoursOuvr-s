@@ -1,7 +1,7 @@
 // Lancer avec : npm test
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { easter, isoDate, holidaysFor, computeRange, CANTONS } from '../js/holidays.js';
+import { easter, isoDate, holidaysFor, computeRange, workingDays, CANTONS } from '../js/holidays.js';
 
 test('date de Pâques', () => {
   assert.equal(isoDate(easter(2024)), '2024-03-31');
@@ -45,4 +45,17 @@ test('férié exclu par l\'utilisateur', () => {
 
 test('intervalle inversé refusé', () => {
   assert.throws(() => computeRange({ from: { y: 2027, m: 5 }, to: { y: 2027, m: 4 }, canton: 'ZH' }), RangeError);
+});
+
+test('déduction des congés', () => {
+  assert.deepEqual(workingDays({ ouvres: 253, conges: 25 }), { theoriques: 253, conges: 25, net: 228 });
+  assert.deepEqual(workingDays({ ouvres: 253, taux: 80, conges: 20 }), { theoriques: 202.4, conges: 20, net: 182.4 });
+  assert.equal(workingDays({ ouvres: 20, conges: 2.5 }).net, 17.5);
+  assert.equal(workingDays({ ouvres: 20 }).net, 20);
+});
+
+test('congés invalides refusés', () => {
+  assert.throws(() => workingDays({ ouvres: 20, conges: -1 }), RangeError);
+  assert.throws(() => workingDays({ ouvres: 20, conges: 21 }), RangeError);
+  assert.throws(() => workingDays({ ouvres: 20, conges: 1.3 }), RangeError);
 });

@@ -62,7 +62,7 @@ select, input[type=number] {
 }
 select:focus, input:focus, .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 .taux { display: flex; align-items: center; gap: .4rem; }
-.taux input { max-width: 110px; }
+.taux input { max-width: 110px; min-width: 0; }
 
 .presets { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .9rem; }
 .btn {
@@ -74,7 +74,7 @@ select:focus, input:focus, .btn:focus-visible { outline: 2px solid var(--accent)
 .btn.ghost:hover { background: var(--accent-pale); }
 .error { color: var(--rouge); font-size: .9rem; margin: .5rem 0 0; min-height: 1em; }
 
-.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: .75rem; margin-bottom: 1rem; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: .75rem; margin-bottom: 1rem; }
 .kpi { background: var(--carte); border: 1px solid var(--bord); border-radius: var(--radius); padding: .9rem 1rem; display: flex; flex-direction: column; }
 .kpi .lbl { font-size: .85rem; color: var(--texte-2); }
 .kpi .val { font-size: 1.9rem; font-weight: 600; font-variant-numeric: tabular-nums; }
@@ -130,4 +130,9 @@ select:focus, input:focus, .btn:focus-visible { outline: 2px solid var(--accent)
   .card, .kpi, .month { break-inside: avoid; border-color: #ccc; }
   #bars, .hol-list { max-height: none; overflow: visible; }
   .two-cols { grid-template-columns: 1fr 1fr; }
+}
+
+@media (min-width: 960px) {
+  .grid-filters { grid-template-columns: 1.6fr 1.6fr 1.3fr .8fr .9fr; }
+  .kpis { grid-template-columns: 1.5fr repeat(5, minmax(0, 1fr)); }
 }

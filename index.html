@@ -48,6 +48,10 @@
           <label for="taux">Taux d'activité</label>
           <div class="taux"><input id="taux" type="number" min="1" max="100" step="1" value="100"><span>%</span></div>
         </div>
+        <div class="field">
+          <label for="conges">Congés à déduire</label>
+          <div class="taux"><input id="conges" type="number" min="0" step="0.5" value="0" inputmode="decimal"><span>jours</span></div>
+        </div>
       </div>
       <div class="presets">
         <button class="btn" type="button" data-preset="mois">Mois en cours</button>
@@ -61,9 +65,11 @@
     <p class="print-only" id="printTitle"></p>
 
     <section class="kpis" aria-live="polite">
-      <div class="kpi main"><span class="lbl">Jours ouvrés</span><span class="val" id="kO">–</span><span class="hint" id="kP"></span></div>
+      <div class="kpi main"><span class="lbl">Jours à travailler</span><span class="val" id="kN">–</span><span class="hint" id="kNh"></span></div>
+      <div class="kpi"><span class="lbl">Jours ouvrés</span><span class="val" id="kO">–</span><span class="hint" id="kP"></span></div>
+      <div class="kpi"><span class="lbl">Congés déduits</span><span class="val" id="kV">–</span></div>
       <div class="kpi"><span class="lbl">Fériés en semaine</span><span class="val" id="kF">–</span></div>
-      <div class="kpi"><span class="lbl">Jours de week-end</span><span class="val" id="kW">–</span></div>
+      <div class="kpi"><span class="lbl">Week-end</span><span class="val" id="kW">–</span></div>
       <div class="kpi"><span class="lbl">Jours calendaires</span><span class="val" id="kC">–</span></div>
     </section>
 
@@ -94,6 +100,7 @@
 
   <footer class="wrap foot">
     <p>Les fériés retenus sont les jours officiellement chômés dans chaque canton. Certains fériés ne le sont que dans une partie du canton (communes catholiques d'Argovie, Fribourg ou Soleure, par exemple) : ajustez la liste si besoin. Les demi-jours (Sechseläuten, veille de Noël…) ne sont pas comptés.</p>
+    <p>Version <span id="version"></span> · <a href="https://github.com/PascalGir/JoursOuvr-s/blob/main/CHANGELOG.md">Historique des versions</a></p>
   </footer>
 
   <script type="module" src="js/app.js"></script>
