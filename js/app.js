@@ -1,5 +1,5 @@
-import { CANTONS, computeRange, workingDays, daysInMonth } from './holidays.js?v=1.2.0';
-import { VERSION } from './version.js?v=1.2.0';
+import { COUNTRIES, computeRange, workingDays, daysInMonth } from './holidays.js?v=1.3.0';
+import { VERSION } from './version.js?v=1.3.0';
 
 const MOIS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août',
   'septembre', 'octobre', 'novembre', 'décembre'];
@@ -26,9 +26,21 @@ const years = [];
 for (let y = thisYear - 10; y <= thisYear + 15; y++) years.push([y, y]);
 fillSelect($('y1'), years);
 fillSelect($('y2'), years);
-fillSelect($('ct'), Object.entries(CANTONS)
-  .sort((a, b) => a[1].localeCompare(b[1], 'fr'))
-  .map(([code, nom]) => [code, `${nom} (${code})`]));
+fillSelect($('pays'), Object.entries(COUNTRIES).map(([code, c]) => [code, c.nom]));
+
+// Liste des régions (canton, zone, Land) du pays choisi ; masquée s'il n'y en a qu'une.
+function fillRegions(country, wanted) {
+  const c = COUNTRIES[country];
+  let entries = Object.entries(c.regions);
+  if (c.sortRegions) entries = entries.sort((a, b) => a[1].localeCompare(b[1], 'fr'));
+  fillSelect($('ct'), entries.map(([code, nom]) => [code, c.sortRegions ? `${nom} (${code})` : nom]));
+  $('ct').value = c.regions[wanted] ? wanted : c.defaultRegion;
+  $('regionLabel').textContent = c.regionLabel || 'Région';
+  $('regionField').hidden = entries.length < 2;
+  $('logo').textContent = country;
+  $('note').textContent = c.note;
+}
+const storedRegion = (country) => store.get(`region-${country}`, country === 'CH' ? store.get('canton', null) : null);
 
 // Liste des jours selon le mois et l'année choisis (28 à 31), en gardant le jour sélectionné si possible.
 function syncDays(n, wanted) {
@@ -51,25 +63,34 @@ function parseDate(s, fin) {
 const params = new URLSearchParams(location.search);
 const from = parseDate(params.get('du'), false) || { y: thisYear, m: 1, d: 1 };
 const to = parseDate(params.get('au'), true) || { y: thisYear, m: 12, d: 31 };
-const canton = CANTONS[params.get('canton')] ? params.get('canton') : store.get('canton', 'VD');
+const legacyCanton = COUNTRIES.CH.regions[params.get('canton')] ? params.get('canton') : null;
+const savedPays = COUNTRIES[store.get('pays', 'CH')] ? store.get('pays', 'CH') : 'CH';
+const pays = legacyCanton ? 'CH' : (COUNTRIES[params.get('pays')] ? params.get('pays') : savedPays);
+const region = legacyCanton || params.get('region') || storedRegion(pays);
 const taux = +params.get('taux') || store.get('taux', 100);
 const conges = Math.max(0, +(params.get('conges') || '0').replace(',', '.') || 0);
 
 $('m1').value = from.m; $('y1').value = from.y; syncDays(1, from.d);
 $('m2').value = to.m; $('y2').value = to.y; syncDays(2, to.d);
-$('ct').value = canton;
+$('pays').value = pays;
+fillRegions(pays, region);
 $('taux').value = taux;
 $('conges').value = conges;
 $('version').textContent = VERSION;
 
-const excludedKey = (c) => `exclus-${c}`;
+const excludedKey = (country, reg) => `exclus-${country}-${reg}`;
+function getExcluded(country, reg) {
+  // Compatibilité : avant la v1.3.0, les fériés décochés suisses étaient enregistrés sous « exclus-<canton> ».
+  return store.get(excludedKey(country, reg), country === 'CH' ? store.get(`exclus-${reg}`, []) : []);
+}
 let last = null;
 
 function readState() {
   return {
     from: { y: +$('y1').value, m: +$('m1').value, d: +$('d1').value },
     to: { y: +$('y2').value, m: +$('m2').value, d: +$('d2').value },
-    canton: $('ct').value,
+    pays: $('pays').value,
+    region: $('ct').value,
     taux: Math.min(100, Math.max(1, Math.round(+$('taux').value || 100))),
     conges: +String($('conges').value || '0').replace(',', '.'),
   };
@@ -77,6 +98,10 @@ function readState() {
 
 const pad2 = (n) => String(n).padStart(2, '0');
 const ymd = (x) => `${x.y}-${pad2(x.m)}-${pad2(x.d)}`;
+const placeLabel = (s) => {
+  const c = COUNTRIES[s.pays];
+  return Object.keys(c.regions).length > 1 ? `${c.nom} – ${c.regions[s.region]}` : c.nom;
+};
 const dateFr = (x) => `${x.d} ${MOIS[x.m - 1]} ${x.y}`;
 const monthLabel = (r) => {
   const base = `${MOIS[r.m - 1].slice(0, 4)}. ${r.y}`;
@@ -90,8 +115,9 @@ function updateUrl(s) {
   const p = new URLSearchParams({
     du: ymd(s.from),
     au: ymd(s.to),
-    canton: s.canton,
+    pays: s.pays,
   });
+  if (Object.keys(COUNTRIES[s.pays].regions).length > 1) p.set('region', s.region);
   if (s.taux !== 100) p.set('taux', s.taux);
   if (s.conges > 0) p.set('conges', s.conges);
   history.replaceState(null, '', `?${p}`);
@@ -99,13 +125,14 @@ function updateUrl(s) {
 
 function render() {
   const s = readState();
-  store.set('canton', s.canton);
+  store.set('pays', s.pays);
+  store.set(`region-${s.pays}`, s.region);
   store.set('taux', s.taux);
-  const excluded = new Set(store.get(excludedKey(s.canton), []));
+  const excluded = new Set(getExcluded(s.pays, s.region));
 
   let res, net;
   try {
-    res = computeRange({ from: s.from, to: s.to, canton: s.canton, excluded });
+    res = computeRange({ from: s.from, to: s.to, country: s.pays, region: s.region, excluded });
     net = workingDays({ ouvres: res.totals.ouvres, taux: s.taux, conges: s.conges });
   } catch (e) {
     $('err').textContent = e.message;
@@ -132,7 +159,7 @@ function render() {
   $('kC').textContent = t.jours;
 
   const periode = `du ${dateFr(s.from)} au ${dateFr(s.to)}`;
-  $('printTitle').textContent = `${CANTONS[s.canton]} · ${periode}`;
+  $('printTitle').textContent = `${placeLabel(s)} · ${periode}`;
 
   // Barres par mois
   const max = Math.max(...res.months.map((r) => r.ouvres), 1);
@@ -148,7 +175,7 @@ function render() {
     <li class="${h.compte ? '' : 'off'}">
       <label>
         <input type="checkbox" class="no-print" data-id="${h.id}" ${h.compte ? 'checked' : ''}>
-        <span class="h-date">${h.date.toLocaleDateString('fr-CH', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}</span>
+        <span class="h-date">${h.date.toLocaleDateString('fr', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}</span>
         <span class="h-nom">${h.nom}</span>
         ${h.weekend ? '<span class="tag">week-end</span>' : ''}
       </label>
@@ -191,14 +218,15 @@ document.querySelectorAll('[data-preset]').forEach((b) => b.addEventListener('cl
 ['m1', 'y1'].forEach((id) => $(id).addEventListener('change', () => { syncDays(1); render(); }));
 ['m2', 'y2'].forEach((id) => $(id).addEventListener('change', () => { syncDays(2); render(); }));
 ['d1', 'd2', 'ct'].forEach((id) => $(id).addEventListener('change', render));
+$('pays').addEventListener('change', () => { fillRegions($('pays').value, storedRegion($('pays').value)); render(); });
 $('taux').addEventListener('input', render);
 $('conges').addEventListener('input', render);
 
 $('hol').addEventListener('change', (e) => {
   const id = e.target.dataset && e.target.dataset.id;
   if (!id) return;
-  const key = excludedKey($('ct').value);
-  const set = new Set(store.get(key, []));
+  const key = excludedKey($('pays').value, $('ct').value);
+  const set = new Set(getExcluded($('pays').value, $('ct').value));
   if (e.target.checked) set.delete(id); else set.add(id);
   store.set(key, [...set]);
   render();
@@ -222,13 +250,14 @@ $('btnCsv').addEventListener('click', () => {
   if (s.taux < 100) total.push((t.ouvres * s.taux / 100).toFixed(1).replace('.', ','));
   const fmt = (n) => String(n).replace('.', ',');
   const pad = Array(head.length - 2).fill('');
-  const extra = [[], ['Canton', CANTONS[s.canton], ...pad], ['Période', `du ${dateFr(s.from)} au ${dateFr(s.to)}`, ...pad]];
+  const extra = [[], ['Lieu', placeLabel(s), ...pad], ['Période', `du ${dateFr(s.from)} au ${dateFr(s.to)}`, ...pad]];
   if (s.taux < 100) extra.push([`Jours ouvrés à ${s.taux} %`, fmt(net.theoriques), ...pad]);
   extra.push(['Congés déduits', fmt(s.conges), ...pad], ['Jours à travailler', fmt(net.net), ...pad]);
   const csv = '\ufeff' + [head, ...rows, total, ...extra].map((r) => r.join(';')).join('\r\n');
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
-  a.download = `jours-ouvres-${s.canton}-${ymd(s.from)}_${ymd(s.to)}.csv`;
+  const lieu = Object.keys(COUNTRIES[s.pays].regions).length > 1 ? `${s.pays}-${s.region}` : s.pays;
+  a.download = `jours-ouvres-${lieu}-${ymd(s.from)}_${ymd(s.to)}.csv`;
   document.body.appendChild(a);
   a.click();
   a.remove();

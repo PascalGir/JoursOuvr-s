@@ -1,21 +1,21 @@
 <!DOCTYPE html>
-<html lang="fr-CH">
+<html lang="fr">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Jours ouvrés en Suisse – calculateur par canton</title>
-  <meta name="description" content="Calculez le nombre de jours ouvrés entre deux mois, pour chacun des 26 cantons suisses, jours fériés inclus.">
+  <title>Calculateur de jours ouvrés – Suisse, France et pays voisins</title>
+  <meta name="description" content="Calculez le nombre de jours ouvrés entre deux dates en Suisse (26 cantons), en France (dont Alsace-Moselle et outre-mer), en Allemagne, en Autriche, en Belgique, en Italie et au Luxembourg, jours fériés inclus.">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23d52b1e'/%3E%3Cpath d='M13 7h6v6h6v6h-6v6h-6v-6H7v-6h6z' fill='%23fff'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="css/style.css?v=1.2.0">
+  <link rel="stylesheet" href="css/style.css?v=1.3.0">
 </head>
 <body>
   <header class="site-header">
     <div class="wrap">
       <div class="brand">
-        <span class="logo" aria-hidden="true"></span>
+        <span class="logo" id="logo" aria-hidden="true">CH</span>
         <div>
-          <h1>Jours ouvrés en Suisse</h1>
-          <p class="sub">Par canton, jours fériés inclus</p>
+          <h1>Calculateur de jours ouvrés</h1>
+          <p class="sub">Suisse, France et pays voisins · jours fériés inclus</p>
         </div>
       </div>
       <button class="btn ghost no-print" id="btnPrint" type="button">Imprimer / PDF</button>
@@ -43,7 +43,11 @@
           </div>
         </fieldset>
         <div class="field">
-          <label for="ct">Canton</label>
+          <label for="pays">Pays</label>
+          <select id="pays"></select>
+        </div>
+        <div class="field" id="regionField">
+          <label for="ct" id="regionLabel">Canton</label>
           <select id="ct"></select>
         </div>
         <div class="field">
@@ -102,10 +106,10 @@
   </main>
 
   <footer class="wrap foot">
-    <p>Les fériés retenus sont les jours officiellement chômés dans chaque canton. Certains fériés ne le sont que dans une partie du canton (communes catholiques d'Argovie, Fribourg ou Soleure, par exemple) : ajustez la liste si besoin. Les demi-jours (Sechseläuten, veille de Noël…) ne sont pas comptés.</p>
+    <p><span id="note"></span> Vous pouvez ajuster la liste des fériés si besoin.</p>
     <p>Version <span id="version"></span> · <a href="https://github.com/PascalGir/JoursOuvr-s/blob/main/CHANGELOG.md">Historique des versions</a></p>
   </footer>
 
-  <script type="module" src="js/app.js?v=1.2.0"></script>
+  <script type="module" src="js/app.js?v=1.3.0"></script>
 </body>
 </html>

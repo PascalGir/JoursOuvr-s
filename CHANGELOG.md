@@ -10,6 +10,25 @@ Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) et la nu
 
 La version affichée en bas du site provient de `js/version.js`. Pour publier une nouvelle version : `sh scripts/version.sh X.Y.Z`, puis compléter ce fichier.
 
+## [1.3.0] – 2026-11-15
+
+### Ajouté
+- Choix du **pays** : Suisse, **France**, Allemagne, Autriche, Belgique, Italie, Luxembourg
+- **France** : 11 jours fériés légaux, avec les zones Métropole, **Alsace-Moselle** (Vendredi saint et Saint-Étienne en plus), Guadeloupe, Martinique, Guyane, La Réunion et Mayotte (commémoration de l'abolition de l'esclavage à la date propre à chacune)
+- **Allemagne** : choix parmi les 16 Länder, avec leurs fériés propres (Épiphanie, Fête-Dieu, Assomption, Réformation, Toussaint, Jour de pénitence et de prière en Saxe…) et les fériés récents selon l'année (8 mars à Berlin depuis 2019 et en Mecklembourg depuis 2023, 20 septembre en Thuringe depuis 2019, Réformation à Brême, Hambourg, Basse-Saxe et Schleswig-Holstein depuis 2018)
+- **Autriche** (13 fériés), **Belgique** (10), **Luxembourg** (11, dont la Journée de l'Europe depuis 2019), **Italie** (dont la Saint-François d'Assise, 4 octobre, rétablie à partir de 2026)
+- Le champ de région s'adapte au pays (« Canton », « Zone », « Land ») et disparaît pour les pays sans différence régionale
+- Note explicative propre à chaque pays en bas de page (par exemple, lundi de Pentecôte et journée de solidarité en France)
+- Pays et région mémorisés dans le navigateur ; la dernière région utilisée est retrouvée pour chaque pays
+- Tests pour la France, l'Allemagne, l'Italie et les autres pays (14 tests)
+
+### Modifié
+- Le site s'appelle désormais **« Calculateur de jours ouvrés »** ; le logo affiche le code du pays choisi
+- Lien partageable : paramètres `pays` et `region` (par exemple `?pays=FR&region=AM`). Les anciens liens avec `canton=` restent valables et ouvrent la Suisse
+- Fériés décochés mémorisés par pays et par région ; les choix faits pour les cantons suisses avant cette version sont conservés
+- Export CSV : ligne « Lieu » (pays et région) au lieu de « Canton » ; nom de fichier avec le code du pays
+- Moteur de calcul : `holidaysFor(année, pays, région)` et `computeRange({ country, region, … })` ; l'ancien appel avec `canton` reste accepté
+
 ## [1.2.0] – 2026-11-15
 
 ### Ajouté
