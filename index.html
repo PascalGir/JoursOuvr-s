@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Calculateur de jours ouvrés – Suisse, France et pays voisins</title>
-  <meta name="description" content="Calculez le nombre de jours ouvrés entre deux dates en Suisse (26 cantons), en France (dont Alsace-Moselle et outre-mer), en Allemagne, en Autriche, en Belgique, en Espagne, en Italie, au Liechtenstein et au Luxembourg, jours fériés inclus.">
+  <meta name="description" content="Calculez le nombre de jours ouvrés entre deux dates en Suisse (26 cantons), en France, en Allemagne, en Autriche, en Belgique, en Espagne, en Italie, au Liechtenstein, au Luxembourg, aux Pays-Bas, au Portugal et au Royaume-Uni, jours fériés inclus.">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23d52b1e'/%3E%3Cpath d='M13 7h6v6h6v6h-6v6h-6v-6H7v-6h6z' fill='%23fff'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="css/style.css?v=1.4.0">
+  <link rel="stylesheet" href="css/style.css?v=1.5.0">
 </head>
 <body>
   <header class="site-header">
@@ -14,36 +14,49 @@
       <div class="brand">
         <span class="logo" id="logo" aria-hidden="true">CH</span>
         <div>
-          <h1>Calculateur de jours ouvrés</h1>
-          <p class="sub">Suisse, France et pays voisins · jours fériés inclus</p>
+          <h1 data-i18n="title">Calculateur de jours ouvrés</h1>
+          <p class="sub" data-i18n="subtitle">Suisse, France et pays voisins · jours fériés inclus</p>
         </div>
       </div>
-      <button class="btn ghost no-print" id="btnPrint" type="button">Imprimer / PDF</button>
+      <div class="header-actions no-print">
+        <label class="sr-only" for="lang" data-i18n="language">Langue</label>
+        <select id="lang" class="compact">
+          <option value="fr">FR</option>
+          <option value="en">EN</option>
+        </select>
+        <button class="btn ghost" id="btnShare" type="button" data-i18n="share">Partager</button>
+        <button class="btn ghost" id="btnPrint" type="button" data-i18n="print">Imprimer / PDF</button>
+      </div>
     </div>
   </header>
 
   <main class="wrap">
     <section class="card filters no-print" aria-labelledby="t-filtre">
-      <h2 id="t-filtre" class="sr-only">Filtre</h2>
+      <h2 id="t-filtre" class="sr-only" data-i18n="quickPeriod">Période</h2>
       <div class="grid-filters">
-        <fieldset>
-          <legend>Du</legend>
-          <div class="pair">
-            <label class="sr-only" for="d1">Jour de début</label><select id="d1"></select>
-            <label class="sr-only" for="m1">Mois de début</label><select id="m1"></select>
-            <label class="sr-only" for="y1">Année de début</label><select id="y1"></select>
-          </div>
-        </fieldset>
-        <fieldset>
-          <legend>Au (inclus)</legend>
-          <div class="pair">
-            <label class="sr-only" for="d2">Jour de fin</label><select id="d2"></select>
-            <label class="sr-only" for="m2">Mois de fin</label><select id="m2"></select>
-            <label class="sr-only" for="y2">Année de fin</label><select id="y2"></select>
-          </div>
-        </fieldset>
         <div class="field">
-          <label for="pays">Pays</label>
+          <label for="du" data-i18n="from">Du</label>
+          <input id="du" type="date" min="1990-01-01" max="2099-12-31" required>
+        </div>
+        <div class="field">
+          <label for="au" data-i18n="to">Au (inclus)</label>
+          <input id="au" type="date" min="1990-01-01" max="2099-12-31" required>
+        </div>
+        <div class="field">
+          <label for="preset" data-i18n="quickPeriod">Période rapide</label>
+          <select id="preset">
+            <option value="" data-i18n="preset.custom">Période personnalisée</option>
+            <option value="mois" data-i18n="preset.mois">Ce mois</option>
+            <option value="moisSuivant" data-i18n="preset.moisSuivant">Le mois prochain</option>
+            <option value="trimestre" data-i18n="preset.trimestre">Ce trimestre</option>
+            <option value="reste" data-i18n="preset.reste">D'aujourd'hui à fin d'année</option>
+            <option value="annee" data-i18n="preset.annee">Cette année</option>
+            <option value="suivante" data-i18n="preset.suivante">L'an prochain</option>
+            <option value="douze" data-i18n="preset.douze">12 prochains mois</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="pays" data-i18n="country">Pays</label>
           <select id="pays"></select>
         </div>
         <div class="field" id="regionField">
@@ -51,65 +64,89 @@
           <select id="ct"></select>
         </div>
         <div class="field">
-          <label for="taux">Taux d'activité</label>
-          <div class="taux"><input id="taux" type="number" min="1" max="100" step="1" value="100"><span>%</span></div>
+          <div class="label-row">
+            <label for="taux" data-i18n="rate">Taux d'activité</label>
+            <button class="help" type="button" aria-expanded="false" aria-controls="help-rate" data-i18n-aria="help">?</button>
+          </div>
+          <div class="unit"><input id="taux" type="number" min="1" max="100" step="1" value="100"><span>%</span></div>
+          <p class="help-text" id="help-rate" data-i18n="help.rate" hidden></p>
         </div>
         <div class="field">
-          <label for="conges">Congés à déduire</label>
-          <div class="taux"><input id="conges" type="number" min="0" step="0.5" value="0" inputmode="decimal"><span>jours</span></div>
+          <div class="label-row">
+            <label for="conges" data-i18n="leave">Congés à déduire</label>
+            <button class="help" type="button" aria-expanded="false" aria-controls="help-leave" data-i18n-aria="help">?</button>
+          </div>
+          <div class="unit"><input id="conges" type="number" min="0" step="0.5" value="0" inputmode="decimal"><span data-i18n="days">jours</span></div>
+          <p class="help-text" id="help-leave" data-i18n="help.leave" hidden></p>
         </div>
-      </div>
-      <div class="presets">
-        <button class="btn" type="button" data-preset="mois">Mois en cours</button>
-        <button class="btn" type="button" data-preset="trimestre">Trimestre en cours</button>
-        <button class="btn" type="button" data-preset="reste">D'aujourd'hui à fin d'année</button>
-        <button class="btn" type="button" data-preset="annee">Année en cours</button>
-        <button class="btn" type="button" data-preset="suivante">Année prochaine</button>
+        <div class="field field-reset">
+          <button class="btn" id="btnReset" type="button" data-i18n="reset">Réinitialiser</button>
+        </div>
       </div>
       <p class="error" id="err" role="alert"></p>
     </section>
 
-    <p class="print-only" id="printTitle"></p>
-
-    <section class="kpis" aria-live="polite">
-      <div class="kpi main"><span class="lbl">Jours à travailler</span><span class="val" id="kN">–</span><span class="hint" id="kNh"></span></div>
-      <div class="kpi"><span class="lbl">Jours ouvrés</span><span class="val" id="kO">–</span><span class="hint" id="kP"></span></div>
-      <div class="kpi"><span class="lbl">Congés déduits</span><span class="val" id="kV">–</span></div>
-      <div class="kpi"><span class="lbl">Fériés en semaine</span><span class="val" id="kF">–</span></div>
-      <div class="kpi"><span class="lbl">Week-end</span><span class="val" id="kW">–</span></div>
-      <div class="kpi"><span class="lbl">Jours calendaires</span><span class="val" id="kC">–</span></div>
+    <section class="kpis no-print" aria-live="polite">
+      <div class="kpi main"><span class="lbl" data-i18n="kpi.net">Jours à travailler</span><span class="val" id="kN">–</span><span class="hint" id="kNh"></span></div>
+      <div class="kpi">
+        <span class="lbl"><span data-i18n="kpi.workdays">Jours ouvrés</span>
+          <button class="help" type="button" aria-expanded="false" aria-controls="help-workdays" data-i18n-aria="help">?</button></span>
+        <span class="val" id="kO">–</span>
+        <span class="help-text" id="help-workdays" data-i18n="help.workdays" hidden></span>
+      </div>
+      <div class="kpi"><span class="lbl" data-i18n="kpi.leave">Congés déduits</span><span class="val" id="kV">–</span></div>
+      <div class="kpi"><span class="lbl" data-i18n="kpi.holidays">Fériés en semaine</span><span class="val" id="kF">–</span></div>
+      <div class="kpi"><span class="lbl" data-i18n="kpi.weekend">Week-end</span><span class="val" id="kW">–</span></div>
+      <div class="kpi"><span class="lbl" data-i18n="kpi.calendar">Jours calendaires</span><span class="val" id="kC">–</span></div>
     </section>
 
-    <div class="two-cols">
+    <div class="two-cols no-print">
       <section class="card">
         <div class="card-head">
-          <h2>Détail par mois</h2>
-          <button class="btn ghost no-print" id="btnCsv" type="button">Exporter CSV</button>
+          <h2 data-i18n="monthly">Détail par mois</h2>
+          <button class="btn ghost" id="btnCsv" type="button" data-i18n="exportCsv">Exporter CSV</button>
         </div>
         <div id="bars"></div>
       </section>
 
       <section class="card">
-        <div class="card-head"><h2>Jours fériés de la période</h2></div>
-        <p class="note no-print">Décochez un férié s'il n'est pas chômé dans votre entreprise ou votre commune, cochez-en un s'il l'est.</p>
+        <div class="card-head">
+          <h2 data-i18n="holidaysTitle">Jours fériés de la période</h2>
+          <button class="help" type="button" aria-expanded="false" aria-controls="help-optional" data-i18n-aria="help">?</button>
+        </div>
+        <p class="help-text" id="help-optional" data-i18n="help.optional" hidden></p>
+        <p class="note" data-i18n="holidaysNote">Décochez un férié s'il n'est pas chômé chez vous.</p>
         <ul id="hol" class="hol-list"></ul>
+        <button class="linklike" id="btnRestore" type="button" data-i18n="holidaysRestore">Rétablir la liste par défaut</button>
       </section>
     </div>
 
-    <section class="card">
+    <section class="card no-print">
       <div class="card-head">
-        <h2>Calendrier</h2>
-        <div class="legend"><span class="sw ouvre"></span>Ouvré <span class="sw ferie"></span>Férié <span class="sw weekend"></span>Week-end <span class="sw hors"></span>Hors période</div>
+        <h2 data-i18n="calendar">Calendrier</h2>
+        <div class="legend">
+          <span class="sw ouvre"></span><span data-i18n="legend.workday">Ouvré</span>
+          <span class="sw ferie"></span><span data-i18n="legend.holiday">Férié</span>
+          <span class="sw weekend"></span><span data-i18n="legend.weekend">Week-end</span>
+          <span class="sw hors"></span><span data-i18n="legend.outside">Hors période</span>
+        </div>
       </div>
       <div id="cal" class="cal-grid"></div>
     </section>
+
+    <section id="printDoc" class="print-only" aria-hidden="true"></section>
   </main>
 
-  <footer class="wrap foot">
-    <p><span id="note"></span> Vous pouvez ajuster la liste des fériés si besoin.</p>
-    <p>Version <span id="version"></span> · <a href="https://github.com/PascalGir/JoursOuvr-s/blob/main/CHANGELOG.md">Historique des versions</a></p>
+  <footer class="wrap foot no-print">
+    <p><span id="note"></span> <span data-i18n="adjust">Vous pouvez ajuster la liste des fériés si besoin.</span></p>
+    <p id="sources"></p>
+    <p><span data-i18n="version">Version</span> <span id="version"></span>
+      · <a href="https://github.com/PascalGir/JoursOuvr-s/blob/main/CHANGELOG.md" data-i18n="changelog">Historique des versions</a>
+      · <a href="https://github.com/PascalGir/JoursOuvr-s/actions/workflows/tests.yml" data-i18n="testReport">Rapport de tests</a></p>
   </footer>
 
-  <script type="module" src="js/app.js?v=1.4.0"></script>
+  <div id="toast" class="toast" role="status" hidden></div>
+
+  <script type="module" src="js/app.js?v=1.5.0"></script>
 </body>
 </html>

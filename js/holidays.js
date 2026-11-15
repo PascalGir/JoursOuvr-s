@@ -16,6 +16,7 @@ const CATHOLIQUES = ['AI', 'FR', 'JU', 'LU', 'NW', 'OW', 'SZ', 'TI', 'UR', 'VS',
 
 const D = (y, m, d) => new Date(y, m - 1, d);
 const addDays = (date, n) => { const r = new Date(date); r.setDate(r.getDate() + n); return r; };
+const isWeekend = (d) => d.getDay() === 0 || d.getDay() === 6;
 
 /** Dimanche de Pâques (calendrier grégorien, algorithme de Meeus/Jones/Butcher). */
 export function easter(y) {
@@ -44,6 +45,12 @@ function naefelserFahrt(y) {
   return diff >= -7 && diff < 0 ? addDays(e, 4) : d;
 }
 
+function sechselaeuten(y) {
+  // Troisième lundi d'avril ; décalé d'une semaine s'il tombe le lundi de Pâques.
+  const d = nthWeekday(y, 4, 1, 3);
+  return isoDate(d) === isoDate(addDays(easter(y), 1)) ? addDays(d, 7) : d;
+}
+
 const RULES_CH = [
   { id: 'nouvel-an', nom: 'Nouvel An', date: (y) => D(y, 1, 1), regions: ALL },
   { id: 'berchtold', nom: 'Saint-Berchtold (2 janvier)', date: (y) => D(y, 1, 2),
@@ -58,20 +65,24 @@ const RULES_CH = [
     regions: ['BL', 'BS', 'JU', 'NE', 'SH', 'TG', 'TI', 'ZH'] },
   { id: 'ascension', nom: 'Ascension', date: (y) => addDays(easter(y), 39), regions: ALL },
   { id: 'lundi-pentecote', nom: 'Lundi de Pentecôte', date: (y) => addDays(easter(y), 50), regions: except('VS') },
-  { id: 'fete-dieu', nom: 'Fête-Dieu', date: (y) => addDays(easter(y), 60), regions: CATHOLIQUES },
+  { id: 'sechselaeuten', nom: 'Sechseläuten (ville de Zurich, après-midi)', date: sechselaeuten, regions: ['ZH'], optionnel: true },
+  { id: 'fete-dieu', nom: 'Fête-Dieu', date: (y) => addDays(easter(y), 60), regions: [...CATHOLIQUES, 'AG', 'SO'], optionnelPour: ['AG', 'SO'] },
   { id: 'plebiscite-ju', nom: 'Commémoration du plébiscite', date: (y) => D(y, 6, 23), regions: ['JU'] },
   { id: 'pierre-paul', nom: 'Saint-Pierre et Saint-Paul', date: (y) => D(y, 6, 29), regions: ['TI'] },
   { id: 'fete-nationale', nom: 'Fête nationale', date: (y) => D(y, 8, 1), regions: ALL },
-  { id: 'assomption', nom: 'Assomption', date: (y) => D(y, 8, 15), regions: CATHOLIQUES },
+  { id: 'assomption', nom: 'Assomption', date: (y) => D(y, 8, 15), regions: [...CATHOLIQUES, 'AG', 'SO'], optionnelPour: ['AG', 'SO'] },
+  { id: 'knabenschiessen', nom: 'Knabenschiessen (ville de Zurich, après-midi)', date: (y) => addDays(nthWeekday(y, 9, 0, 2), 1), regions: ['ZH'], optionnel: true },
   { id: 'jeune-genevois', nom: 'Jeûne genevois', date: (y) => addDays(nthWeekday(y, 9, 0, 1), 4), regions: ['GE'] },
   { id: 'lundi-jeune', nom: 'Lundi du Jeûne fédéral', date: (y) => addDays(nthWeekday(y, 9, 0, 3), 1), regions: ['NE', 'VD'] },
   { id: 'bruder-klaus', nom: 'Saint-Nicolas de Flüe', date: (y) => D(y, 9, 25), regions: ['OW'] },
-  { id: 'toussaint', nom: 'Toussaint', date: (y) => D(y, 11, 1), regions: [...CATHOLIQUES, 'GL', 'SG'] },
+  { id: 'toussaint', nom: 'Toussaint', date: (y) => D(y, 11, 1), regions: [...CATHOLIQUES, 'GL', 'SG', 'AG', 'SO'], optionnelPour: ['AG', 'SO'] },
   { id: 'immaculee', nom: 'Immaculée Conception', date: (y) => D(y, 12, 8),
-    regions: CATHOLIQUES.filter((c) => c !== 'JU') },
+    regions: [...CATHOLIQUES.filter((c) => c !== 'JU'), 'AG', 'SO'], optionnelPour: ['AG', 'SO'] },
+  { id: 'veille-noel', nom: 'Veille de Noël (usage)', date: (y) => D(y, 12, 24), regions: ALL, optionnel: true },
   { id: 'noel', nom: 'Noël', date: (y) => D(y, 12, 25), regions: ALL },
   { id: 'saint-etienne', nom: 'Saint-Étienne', date: (y) => D(y, 12, 26), regions: except('GE', 'JU', 'NE', 'VD', 'VS') },
   { id: 'restauration', nom: 'Restauration de la République', date: (y) => D(y, 12, 31), regions: ['GE'] },
+  { id: 'saint-sylvestre', nom: 'Saint-Sylvestre (usage)', date: (y) => D(y, 12, 31), regions: except('GE'), optionnel: true },
 ];
 
 
@@ -125,7 +136,8 @@ const RULES_DE = [
   { id: 'arbeit', nom: 'Fête du travail', date: (y) => D(y, 5, 1), regions: DE_ALL },
   { id: 'himmelfahrt', nom: 'Ascension', date: (y) => addDays(easter(y), 39), regions: DE_ALL },
   { id: 'pfingstmontag', nom: 'Lundi de Pentecôte', date: (y) => addDays(easter(y), 50), regions: DE_ALL },
-  { id: 'fronleichnam', nom: 'Fête-Dieu', date: (y) => addDays(easter(y), 60), regions: ['BW', 'BY', 'HE', 'NW', 'RP', 'SL'] },
+  { id: 'fronleichnam', nom: 'Fête-Dieu', date: (y) => addDays(easter(y), 60), regions: ['BW', 'BY', 'HE', 'NW', 'RP', 'SL', 'SN', 'TH'], optionnelPour: ['SN', 'TH'] },
+  { id: 'friedensfest', nom: 'Fête de la paix (ville d\'Augsbourg)', date: (y) => D(y, 8, 8), regions: ['BY'], optionnel: true },
   { id: 'himmelfahrt-maria', nom: 'Assomption', date: (y) => D(y, 8, 15), regions: ['BY', 'SL'] },
   { id: 'weltkindertag', nom: 'Journée mondiale de l\'enfance', date: (y) => D(y, 9, 20), regions: (y) => (y >= 2019 ? ['TH'] : []) },
   { id: 'einheit', nom: 'Fête de l\'unité allemande', date: (y) => D(y, 10, 3), regions: DE_ALL },
@@ -133,8 +145,10 @@ const RULES_DE = [
     regions: (y) => ['BB', 'MV', 'SN', 'ST', 'TH', ...(y >= 2018 ? ['HB', 'HH', 'NI', 'SH'] : [])] },
   { id: 'allerheiligen', nom: 'Toussaint', date: (y) => D(y, 11, 1), regions: ['BW', 'BY', 'NW', 'RP', 'SL'] },
   { id: 'buss-bettag', nom: 'Jour de pénitence et de prière', date: bussUndBettag, regions: ['SN'] },
+  { id: 'heiligabend', nom: 'Veille de Noël (usage)', date: (y) => D(y, 12, 24), regions: DE_ALL, optionnel: true },
   { id: 'weihnacht-1', nom: 'Noël', date: (y) => D(y, 12, 25), regions: DE_ALL },
   { id: 'weihnacht-2', nom: 'Saint-Étienne', date: (y) => D(y, 12, 26), regions: DE_ALL },
+  { id: 'silvester', nom: 'Saint-Sylvestre (usage)', date: (y) => D(y, 12, 31), regions: DE_ALL, optionnel: true },
 ];
 
 // ---------- Pays sans différence régionale ----------
@@ -151,8 +165,10 @@ const RULES_AT = [
   { id: 'nationalfeiertag', nom: 'Fête nationale', date: (y) => D(y, 10, 26), regions: NATION },
   { id: 'allerheiligen', nom: 'Toussaint', date: (y) => D(y, 11, 1), regions: NATION },
   { id: 'empfaengnis', nom: 'Immaculée Conception', date: (y) => D(y, 12, 8), regions: NATION },
+  { id: 'heiligabend', nom: 'Veille de Noël (usage)', date: (y) => D(y, 12, 24), regions: NATION, optionnel: true },
   { id: 'christtag', nom: 'Noël', date: (y) => D(y, 12, 25), regions: NATION },
   { id: 'stefanitag', nom: 'Saint-Étienne', date: (y) => D(y, 12, 26), regions: NATION },
+  { id: 'silvester', nom: 'Saint-Sylvestre (usage)', date: (y) => D(y, 12, 31), regions: NATION, optionnel: true },
 ];
 const RULES_BE = [
   { id: 'nouvel-an', nom: 'Nouvel An', date: (y) => D(y, 1, 1), regions: NATION },
@@ -337,47 +353,173 @@ function yearRulesES(y) {
   if (ES_OFFICIEL[y]) {
     return ES_OFFICIEL[y].map(([m, d, id, nom, regions]) => ({ id, nom, date: D(y, m, d), regions }));
   }
-  return RULES_ES_ESTIMATION.map((r) => ({ id: r.id, nom: `${r.nom} (estimation)`, date: r.date(y), regions: r.regions }));
+  return RULES_ES_ESTIMATION.map((r) => ({ id: r.id, nom: r.nom, date: r.date(y), regions: r.regions, estimation: true }));
 }
+
+// ---------- Royaume-Uni ----------
+// Les « bank holidays » tombant un week-end sont reportés au premier jour de semaine libre (« substitute day »).
+const UK_REGIONS = { ENW: 'Angleterre et pays de Galles', SCT: 'Écosse', NIR: 'Irlande du Nord' };
+const UK_ALL = Object.keys(UK_REGIONS);
+const lastWeekday = (y, month, weekday) => {
+  const d = D(y, month + 1, 0);
+  while (d.getDay() !== weekday) d.setDate(d.getDate() - 1);
+  return d;
+};
+// Changements ponctuels décidés par le gouvernement (dates déplacées ou jours exceptionnels).
+const UK_EXCEPTIONS = {
+  2020: { move: { 'early-may': D(2020, 5, 8) } },
+  2022: { move: { spring: D(2022, 6, 2) }, add: [['jubilee-2022', 'Jubilé de platine', D(2022, 6, 3)], ['funeral-2022', 'Funérailles de la reine Élisabeth II', D(2022, 9, 19)]] },
+  2023: { add: [['coronation-2023', 'Couronnement du roi Charles III', D(2023, 5, 8)]] },
+};
+const RULES_UK = [
+  { id: 'new-year', nom: 'Nouvel An', date: (y) => D(y, 1, 1), regions: UK_ALL, report: true },
+  { id: 'second-january', nom: '2 janvier', date: (y) => D(y, 1, 2), regions: ['SCT'], report: true },
+  { id: 'st-patrick', nom: 'Saint-Patrick', date: (y) => D(y, 3, 17), regions: ['NIR'], report: true },
+  { id: 'good-friday', nom: 'Vendredi saint', date: (y) => addDays(easter(y), -2), regions: UK_ALL },
+  { id: 'easter-monday', nom: 'Lundi de Pâques', date: (y) => addDays(easter(y), 1), regions: ['ENW', 'NIR'] },
+  { id: 'early-may', nom: 'Jour férié de début mai', date: (y) => nthWeekday(y, 5, 1, 1), regions: UK_ALL },
+  { id: 'spring', nom: 'Jour férié de printemps', date: (y) => lastWeekday(y, 5, 1), regions: UK_ALL },
+  { id: 'boyne', nom: 'Bataille de la Boyne', date: (y) => D(y, 7, 12), regions: ['NIR'], report: true },
+  { id: 'summer-scotland', nom: 'Jour férié d\'été', date: (y) => nthWeekday(y, 8, 1, 1), regions: ['SCT'] },
+  { id: 'summer', nom: 'Jour férié d\'été', date: (y) => lastWeekday(y, 8, 1), regions: ['ENW', 'NIR'] },
+  { id: 'st-andrew', nom: 'Saint-André', date: (y) => D(y, 11, 30), regions: ['SCT'], report: true },
+  { id: 'christmas', nom: 'Noël', date: (y) => D(y, 12, 25), regions: UK_ALL, report: true },
+  { id: 'boxing-day', nom: 'Lendemain de Noël (Boxing Day)', date: (y) => D(y, 12, 26), regions: UK_ALL, report: true },
+];
+function yearRulesUK(y) {
+  const ex = UK_EXCEPTIONS[y] || {};
+  const list = RULES_UK.map((r) => ({
+    id: r.id, nom: r.nom, regions: r.regions, report: !!r.report,
+    date: (ex.move && ex.move[r.id]) || r.date(y),
+  }));
+  for (const [id, nom, date] of ex.add || []) list.push({ id, nom, date, regions: UK_ALL });
+  // Reports : chaque région traite ses propres fériés, dans l'ordre des dates.
+  const out = [];
+  for (const reg of UK_ALL) {
+    const mine = list.filter((h) => h.regions.includes(reg)).sort((a, b) => a.date - b.date);
+    const pris = new Set(mine.filter((h) => !isWeekend(h.date)).map((h) => isoDate(h.date)));
+    for (const h of mine) {
+      let date = h.date;
+      let reporte = false;
+      if (h.report && isWeekend(date)) {
+        date = addDays(date, 1);
+        while (isWeekend(date) || pris.has(isoDate(date))) date = addDays(date, 1);
+        pris.add(isoDate(date));
+        reporte = true;
+      }
+      out.push({ id: h.id, nom: h.nom, date, regions: [reg], report: reporte });
+    }
+  }
+  return out;
+}
+
+// ---------- Pays-Bas ----------
+// Aucun férié n'est un jour chômé obligatoire : la convention collective décide. Le Vendredi saint et
+// la fête de la Libération (5 mai, chômée en général une année sur cinq) sont proposés sans être comptés.
+const RULES_NL = [
+  { id: 'nieuwjaar', nom: 'Nouvel An', date: (y) => D(y, 1, 1), regions: NATION },
+  { id: 'goede-vrijdag', nom: 'Vendredi saint', date: (y) => addDays(easter(y), -2), regions: NATION, optionnel: true },
+  { id: 'paasmaandag', nom: 'Lundi de Pâques', date: (y) => addDays(easter(y), 1), regions: NATION },
+  { id: 'koningsdag', nom: 'Fête du Roi', date: koningsdag, regions: NATION },
+  { id: 'bevrijdingsdag', nom: 'Fête de la Libération', date: (y) => D(y, 5, 5), regions: NATION, optionnel: true },
+  { id: 'hemelvaart', nom: 'Ascension', date: (y) => addDays(easter(y), 39), regions: NATION },
+  { id: 'pinkstermaandag', nom: 'Lundi de Pentecôte', date: (y) => addDays(easter(y), 50), regions: NATION },
+  { id: 'kerst-1', nom: 'Noël', date: (y) => D(y, 12, 25), regions: NATION },
+  { id: 'kerst-2', nom: 'Lendemain de Noël', date: (y) => D(y, 12, 26), regions: NATION },
+];
+function koningsdag(y) {
+  // 27 avril (30 avril avant 2014, fête de la Reine) ; avancé au samedi s'il tombe un dimanche.
+  const d = y >= 2014 ? D(y, 4, 27) : D(y, 4, 30);
+  return d.getDay() === 0 ? addDays(d, -1) : d;
+}
+
+// ---------- Portugal ----------
+const PT_REGIONS = { CONT: 'Portugal continental', MA: 'Madère', AC: 'Açores' };
+const PT_ALL = Object.keys(PT_REGIONS);
+// Fête-Dieu, 5 octobre, Toussaint et 1er décembre supprimés de 2013 à 2015, rétablis en 2016 (loi 8/2016).
+const PT_SAUF_2013_2015 = (y) => (y >= 2013 && y <= 2015 ? [] : PT_ALL);
+const RULES_PT = [
+  { id: 'ano-novo', nom: 'Nouvel An', date: (y) => D(y, 1, 1), regions: PT_ALL },
+  { id: 'carnaval', nom: 'Mardi gras (facultatif)', date: (y) => addDays(easter(y), -47), regions: PT_ALL, optionnel: true },
+  { id: 'autonomia-madeira', nom: 'Jour de l\'autonomie de Madère', date: (y) => D(y, 4, 2), regions: (y) => (y >= 2025 ? ['MA'] : []), optionnel: true },
+  { id: 'sexta-feira-santa', nom: 'Vendredi saint', date: (y) => addDays(easter(y), -2), regions: PT_ALL },
+  { id: 'pascoa', nom: 'Pâques', date: (y) => easter(y), regions: PT_ALL },
+  { id: 'liberdade', nom: 'Jour de la Liberté', date: (y) => D(y, 4, 25), regions: PT_ALL },
+  { id: 'trabalhador', nom: 'Fête du travail', date: (y) => D(y, 5, 1), regions: PT_ALL },
+  { id: 'dia-acores', nom: 'Jour des Açores', date: (y) => addDays(easter(y), 50), regions: ['AC'] },
+  { id: 'corpo-deus', nom: 'Fête-Dieu', date: (y) => addDays(easter(y), 60), regions: PT_SAUF_2013_2015 },
+  { id: 'portugal', nom: 'Jour du Portugal', date: (y) => D(y, 6, 10), regions: PT_ALL },
+  { id: 'dia-madeira', nom: 'Jour de Madère', date: (y) => D(y, 7, 1), regions: ['MA'] },
+  { id: 'assuncao', nom: 'Assomption', date: (y) => D(y, 8, 15), regions: PT_ALL },
+  { id: 'republica', nom: 'Proclamation de la République', date: (y) => D(y, 10, 5), regions: PT_SAUF_2013_2015 },
+  { id: 'todos-santos', nom: 'Toussaint', date: (y) => D(y, 11, 1), regions: PT_SAUF_2013_2015 },
+  { id: 'restauracao', nom: 'Restauration de l\'indépendance', date: (y) => D(y, 12, 1), regions: PT_SAUF_2013_2015 },
+  { id: 'imaculada', nom: 'Immaculée Conception', date: (y) => D(y, 12, 8), regions: PT_ALL },
+  { id: 'natal', nom: 'Noël', date: (y) => D(y, 12, 25), regions: PT_ALL },
+  { id: 'primeira-oitava', nom: 'Lendemain de Noël', date: (y) => D(y, 12, 26), regions: ['MA'] },
+];
 
 export const COUNTRIES = {
   CH: {
-    nom: 'Suisse', regionLabel: 'Canton', regions: CANTONS, defaultRegion: 'VD', sortRegions: true, rules: RULES_CH,
-    note: 'Fériés chômés dans tout le canton ou sa majorité. Certains ne le sont que dans une partie du canton (communes catholiques d\'Argovie, Fribourg ou Soleure, par exemple). Les demi-jours (Sechseläuten, veille de Noël…) ne sont pas comptés.',
+    nom: 'Suisse', sources: [{ label: 'Office fédéral de la justice – jours fériés cantonaux', url: 'https://www.bj.admin.ch/dam/bj/de/data/publiservice/service/zivilprozessrecht/kant-feiertage.pdf' }], regionLabel: 'Canton', regions: CANTONS, defaultRegion: 'VD', sortRegions: true, rules: RULES_CH,
+    note: "Fériés chômés dans tout le canton ou sa majorité. La veille de Noël, la Saint-Sylvestre, le Sechseläuten et le Knabenschiessen (demi-jours d'usage), ainsi que les fériés catholiques d'Argovie et de Soleure (selon la commune), sont listés sans être comptés : cochez-les s'ils sont chômés chez vous.",
   },
   FR: {
-    nom: 'France', regionLabel: 'Zone', regions: FR_ZONES, defaultRegion: 'METRO', sortRegions: false, rules: RULES_FR,
+    nom: 'France', sources: [{ label: 'Service-public.fr – jours fériés', url: 'https://www.service-public.gouv.fr/particuliers/vosdroits/F2405' }], regionLabel: 'Zone', regions: FR_ZONES, defaultRegion: 'METRO', sortRegions: false, rules: RULES_FR,
     note: 'Les 11 jours fériés légaux, plus le Vendredi saint et la Saint-Étienne en Alsace-Moselle et la commémoration de l\'abolition de l\'esclavage dans les départements d\'outre-mer. Le lundi de Pentecôte est compté comme férié : décochez-le s\'il s\'agit de votre journée de solidarité travaillée.',
   },
   DE: {
-    nom: 'Allemagne', regionLabel: 'Land', regions: DE_LAENDER, defaultRegion: 'BW', sortRegions: true, rules: RULES_DE,
-    note: 'Fériés légaux de chaque Land. En Bavière, l\'Assomption n\'est fériée que dans les communes à majorité catholique (la plupart) ; l\'Augsburger Friedensfest (ville d\'Augsbourg) n\'est pas compté.',
+    nom: 'Allemagne', sources: [{ label: 'Hambourg – tableau des fériés légaux par Land', url: 'https://www.hamburg.de/resource/blob/134374/7a4a9de67fd46caec0947c11bf23316d/bsb-feiertage-data.pdf' }], regionLabel: 'Land', regions: DE_LAENDER, defaultRegion: 'BW', sortRegions: true, rules: RULES_DE,
+    note: 'Fériés légaux de chaque Land. En Bavière, l\'Assomption n\'est fériée que dans les communes à majorité catholique (la plupart) : décochez-la si besoin. La Fête-Dieu en Saxe et en Thuringe (certaines communes), la fête de la paix d\'Augsbourg et les 24 et 31 décembre (usage) sont listés sans être comptés.',
   },
   AT: {
-    nom: 'Autriche', regions: { ALL: 'Tout le pays' }, defaultRegion: 'ALL', rules: RULES_AT,
-    note: 'Les 13 fériés légaux (Arbeitsruhegesetz). Les fêtes des saints patrons des Länder ne sont pas comptées.',
+    nom: 'Autriche', sources: [{ label: 'RIS – Arbeitsruhegesetz, § 7', url: 'https://www.ris.bka.gv.at/eli/bgbl/1983/144/P7/NOR40213419' }], regions: { ALL: 'Tout le pays' }, defaultRegion: 'ALL', rules: RULES_AT,
+    note: 'Les 13 fériés légaux (Arbeitsruhegesetz). Les 24 et 31 décembre, souvent chômés par convention collective, sont listés sans être comptés. Les fêtes des saints patrons des Länder ne sont pas comptées.',
   },
   BE: {
-    nom: 'Belgique', regions: { ALL: 'Tout le pays' }, defaultRegion: 'ALL', rules: RULES_BE,
+    nom: 'Belgique', sources: [{ label: 'SPF Emploi – jours fériés', url: 'https://emploi.belgique.be/fr/themes/jours-feries-et-conges/jours-feries' }], regions: { ALL: 'Tout le pays' }, defaultRegion: 'ALL', rules: RULES_BE,
     note: 'Les 10 jours fériés légaux. Les fêtes des Communautés (27 septembre, 11 juillet, 15 novembre) ne sont pas comptées.',
   },
   IT: {
-    nom: 'Italie', regions: { ALL: 'Tout le pays' }, defaultRegion: 'ALL', rules: RULES_IT,
+    nom: 'Italie', sources: [{ label: 'Normattiva – loi 260/1949', url: 'https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:legge:1949-05-27;260' }], regions: { ALL: 'Tout le pays' }, defaultRegion: 'ALL', rules: RULES_IT,
     note: 'Fériés nationaux, dont la Saint-François d\'Assise (4 octobre) rétablie à partir de 2026. Les fêtes du saint patron de chaque ville ne sont pas comptées.',
   },
   LU: {
-    nom: 'Luxembourg', regions: { ALL: 'Tout le pays' }, defaultRegion: 'ALL', rules: RULES_LU,
+    nom: 'Luxembourg', sources: [{ label: 'Guichet.lu – jours fériés légaux', url: 'https://guichet.public.lu/fr/citoyens/travail/conges-jours-feries/jours-feries/travail-jours-feries.html' }], regions: { ALL: 'Tout le pays' }, defaultRegion: 'ALL', rules: RULES_LU,
     note: 'Les 11 jours fériés légaux, dont la Journée de l\'Europe (9 mai) depuis 2019.',
   },
   ES: {
-    nom: 'Espagne', regionLabel: 'Communauté', regions: ES_REGIONS, defaultRegion: 'MD', sortRegions: true, yearRules: yearRulesES,
+    nom: 'Espagne', sources: [{ label: 'BOE – fêtes 2026', url: 'https://www.boe.es/diario_boe/txt.php?id=BOE-A-2025-21667' }, { label: 'BOE – fêtes 2027', url: 'https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-21254' }], regionLabel: 'Communauté', regions: ES_REGIONS, defaultRegion: 'MD', sortRegions: true, yearRules: yearRulesES,
     note: `Fériés nationaux et de la communauté autonome d'après le calendrier officiel du BOE pour ${ES_ANNEES_OFFICIELLES.join(' et ')} ; pour les autres années, estimation à partir des fêtes habituelles (marquée « estimation »). Les 2 fêtes locales de chaque commune et les fêtes propres à chaque île des Canaries ne sont pas comptées.`,
   },
   LI: {
-    nom: 'Liechtenstein', regions: { ALL: 'Tout le pays' }, defaultRegion: 'ALL', rules: RULES_LI,
+    nom: 'Liechtenstein', sources: [{ label: 'Gesetze.li – fériés légaux', url: 'https://www.gesetze.li/konso/pdf/2021038000' }], regions: { ALL: 'Tout le pays' }, defaultRegion: 'ALL', rules: RULES_LI,
     note: 'Les 13 fériés légaux (loi sur le travail, art. 18). La Chandeleur, la Saint-Joseph, le Vendredi saint, le 24 et le 31 décembre ne sont pas légaux : ils sont listés mais non comptés, cochez-les s\'ils sont chômés chez vous.',
   },
+  GB: {
+    nom: 'Royaume-Uni', regionLabel: 'Nation', regions: UK_REGIONS, defaultRegion: 'ENW', sortRegions: false, yearRules: yearRulesUK,
+    sources: [{ label: 'GOV.UK – bank holidays', url: 'https://www.gov.uk/bank-holidays' }],
+    note: 'Les « bank holidays » de chaque nation. Un férié tombant un week-end est reporté au premier jour de semaine libre (« substitute day »), comme le fait le gouvernement britannique. L\'employeur n\'est pas tenu de les accorder : vérifiez votre contrat.',
+  },
+  NL: {
+    nom: 'Pays-Bas', regions: { ALL: 'Tout le pays' }, defaultRegion: 'ALL', rules: RULES_NL,
+    sources: [{ label: 'Rijksoverheid – fêtes officielles', url: 'https://www.rijksoverheid.nl/onderwerpen/arbeidsovereenkomst-en-cao/vraag-en-antwoord/officiele-feestdagen' }],
+    note: 'Fêtes officielles. Aucune n\'est un jour chômé obligatoire : votre convention collective (cao) ou votre contrat décide. Le Vendredi saint et la fête de la Libération (5 mai, chômée en général une année sur cinq) sont listés sans être comptés.',
+  },
+  PT: {
+    nom: 'Portugal', regionLabel: 'Région', regions: PT_REGIONS, defaultRegion: 'CONT', sortRegions: false, rules: RULES_PT,
+    sources: [{ label: 'Diário da República – Code du travail, art. 234', url: 'https://diariodarepublica.pt/dr/legislacao-consolidada/lei/2009-34546475' }],
+    note: 'Les 13 fériés obligatoires (Code du travail, art. 234), plus les fêtes régionales de Madère et des Açores. Le mardi gras et le jour de l\'autonomie de Madère sont listés sans être comptés ; la fête de chaque commune (feriado municipal) n\'est pas comptée.',
+  },
 };
+
+/** Erreur de saisie avec un code stable, traduit par l'interface. */
+function rangeError(code, message, params = {}) {
+  const e = new RangeError(message);
+  e.code = code;
+  e.params = params;
+  return e;
+}
 
 export const isoDate = (d) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -389,12 +531,16 @@ const regionsOf = (rule, y) => (typeof rule.regions === 'function' ? rule.region
 /** Liste des fériés d'un pays et d'une région pour une année, triés par date. */
 export function holidaysFor(year, country, region) {
   const c = COUNTRIES[country];
-  if (!c) throw new RangeError(`Pays inconnu : ${country}`);
+  if (!c) throw rangeError('UNKNOWN_COUNTRY', `Pays inconnu : ${country}`, { country });
   const list = c.yearRules
     ? c.yearRules(year)
-    : c.rules.map((r) => ({ id: r.id, nom: r.nom, date: r.date(year), regions: regionsOf(r, year), optionnel: !!r.optionnel }));
+    : c.rules.map((r) => ({ ...r, date: r.date(year), regions: regionsOf(r, year) }));
   return list.filter((h) => h.regions.includes(region))
-    .map((h) => ({ id: h.id, nom: h.nom, date: h.date, optionnel: !!h.optionnel }))
+    .map((h) => ({
+      id: h.id, nom: h.nom, date: h.date,
+      optionnel: !!h.optionnel || (h.optionnelPour || []).includes(region),
+      estimation: !!h.estimation, report: !!h.report,
+    }))
     .sort((a, b) => a.date - b.date);
 }
 
@@ -403,12 +549,12 @@ export function holidaysFor(year, country, region) {
  * @returns {{theoriques:number, conges:number, net:number}}
  */
 export function workingDays({ ouvres, taux = 100, conges = 0 }) {
-  if (!Number.isFinite(conges) || conges < 0) throw new RangeError('Le nombre de jours de congés doit être positif.');
-  if (Math.round(conges * 2) !== conges * 2) throw new RangeError('Les congés se saisissent par demi-journée (0,5).');
+  if (!Number.isFinite(conges) || conges < 0) throw rangeError('LEAVE_NEGATIVE', 'Le nombre de jours de congés doit être positif.');
+  if (Math.round(conges * 2) !== conges * 2) throw rangeError('LEAVE_HALF', 'Les congés se saisissent par demi-journée (0,5).');
   const theoriques = Math.round(ouvres * taux * 10 / 100) / 10;
   if (conges > theoriques) {
     const f = (n) => String(n).replace('.', ',');
-    throw new RangeError(`Les congés (${f(conges)}) dépassent les jours ouvrés de la période (${f(theoriques)}).`);
+    throw rangeError('LEAVE_TOO_MANY', `Les congés (${f(conges)}) dépassent les jours ouvrés de la période (${f(theoriques)}).`, { conges, theoriques });
   }
   return { theoriques, conges, net: Math.round((theoriques - conges) * 10) / 10 };
 }
@@ -427,7 +573,7 @@ export function computeRange({ from, to, country = 'CH', region, canton, exclude
   const d2 = Math.min(to.d || daysInMonth(to.y, to.m), daysInMonth(to.y, to.m));
   const startDate = new Date(from.y, from.m - 1, d1);
   const endDate = new Date(to.y, to.m - 1, d2);
-  if (endDate < startDate) throw new RangeError('La date de fin doit être postérieure ou égale à la date de début.');
+  if (endDate < startDate) throw rangeError('RANGE_INVERTED', 'La date de fin doit être postérieure ou égale à la date de début.');
 
   const map = new Map();
   const holidays = [];

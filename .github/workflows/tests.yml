@@ -1,0 +1,44 @@
+# Tests automatiques et rapport de tests à chaque modification (QUA-01, QUA-02).
+# Chaque exécution publie son rapport dans le résumé de l'exécution (onglet Actions) et en pièce jointe (rapport HTML).
+# Objectifs : couverture des lignes ≥ 90 % et tests réussis ≥ 90 % ; en dessous, l'exécution est en échec.
+name: Tests
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      COVERAGE_MIN: 90
+      PASS_RATE_MIN: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Installer les dépendances
+        run: npm ci
+
+      - name: Installer Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Lancer les tests et produire le rapport
+        run: npm run test:report
+
+      - name: Joindre le rapport à l'exécution
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rapport-tests-${{ github.run_number }}
+          path: reports/
+          retention-days: 90

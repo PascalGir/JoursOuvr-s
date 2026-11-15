@@ -10,6 +10,37 @@ Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) et la nu
 
 La version affichée en bas du site provient de `js/version.js`. Pour publier une nouvelle version : `sh scripts/version.sh X.Y.Z`, puis compléter ce fichier.
 
+## [1.5.0] – 2026-11-15
+
+### Ajouté
+- **Interface en français et en anglais** (ACC-01) : sélecteur FR / EN en haut de page, langue mémorisée ; anglais par défaut, français si le navigateur est en français ; paramètre `lang` dans le lien. Noms des fériés, des régions, notes et sources traduits
+- **Nouveaux pays** (DAT-05) :
+  - **Royaume-Uni** : Angleterre et pays de Galles, Écosse, Irlande du Nord, avec le report des fériés tombant un week-end (« substitute day ») et les jours exceptionnels de 2020, 2022 et 2023
+  - **Pays-Bas** : fêtes officielles ; le Vendredi saint et la fête de la Libération (5 mai) sont proposés sans être comptés
+  - **Portugal** : continent, Madère et Açores ; fériés supprimés de 2013 à 2015 gérés ; mardi gras proposé sans être compté
+- **Fériés partiels et jours d'usage en optionnel** (DAT-01) : listés mais non comptés par défaut, à cocher s'ils sont chômés
+  - Suisse : veille de Noël, Saint-Sylvestre, Sechseläuten et Knabenschiessen (Zurich), fériés catholiques d'Argovie et de Soleure
+  - Allemagne : Fête-Dieu en Saxe et en Thuringe, fête de la paix d'Augsbourg, 24 et 31 décembre
+  - Autriche : 24 et 31 décembre
+- **Source officielle** de chaque pays affichée et cliquable en bas de page (DAT-02)
+- **Période rapide** (SIM-02) : une seule liste déroulante remplace les 5 boutons, avec deux nouveaux choix (« Le mois prochain », « 12 prochains mois »)
+- **Sélecteur de date du téléphone** (UX-02) : une case par date au lieu de 3 listes jour / mois / année
+- **Bouton « Partager »** (UX-04) : fenêtre de partage du téléphone, ou copie du lien sur ordinateur
+- **Bouton « Réinitialiser »** et **bulles d'aide (?)** sur le taux d'activité, les congés, les jours ouvrés et les fériés optionnels (UX-05) ; bouton « Rétablir la liste par défaut » pour les fériés
+- **Graphique mensuel interactif** (DES-03) : détail du mois (ouvrés, fériés, week-end, jours) au survol ou au toucher
+- **Impression / PDF sur une page A4** (DES-04) : en-tête lieu et période, indicateurs, tableau mensuel avec total, fériés comptés ou non, note et source
+- **Tests automatiques sur GitHub avec rapport** (QUA-01) : à chaque modification, un rapport par exécution (résumé dans l'onglet Actions et fichier HTML joint) avec résultats et couverture de code ; objectifs couverture ≥ 90 % et tests réussis ≥ 90 %, sinon l'exécution est en échec ; badge dans le README
+- **Tests automatiques de l'interface** (QUA-02) : 24 scénarios dans Chromium, sur ordinateur et téléphone simulés, intégrés au même rapport. Première exécution : 50 tests sur 50 réussis, 99,7 % des lignes couvertes
+- Lien « Rapport de tests » en bas de page
+
+### Modifié
+- Les fériés reportés (Royaume-Uni) et estimés (Espagne) portent une étiquette dédiée au lieu d'une mention dans leur nom
+- Les erreurs de saisie ont un code stable, traduit par l'interface
+- Le script `scripts/version.sh` met aussi à jour `package.json`
+
+### Corrigé
+- Si le navigateur bloque le stockage local (navigation privée stricte), cocher ou décocher un férié n'avait aucun effet : les réglages sont désormais gardés en mémoire pendant la visite
+
 ## [1.4.0] – 2026-11-15
 
 ### Ajouté
