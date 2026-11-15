@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="fr-CH">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Jours ouvrés en Suisse – calculateur par canton</title>
+  <meta name="description" content="Calculez le nombre de jours ouvrés entre deux mois, pour chacun des 26 cantons suisses, jours fériés inclus.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23d52b1e'/%3E%3Cpath d='M13 7h6v6h6v6h-6v6h-6v-6H7v-6h6z' fill='%23fff'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <div class="brand">
+        <span class="logo" aria-hidden="true"></span>
+        <div>
+          <h1>Jours ouvrés en Suisse</h1>
+          <p class="sub">Par canton, jours fériés inclus</p>
+        </div>
+      </div>
+      <button class="btn ghost no-print" id="btnPrint" type="button">Imprimer / PDF</button>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="card filters no-print" aria-labelledby="t-filtre">
+      <h2 id="t-filtre" class="sr-only">Filtre</h2>
+      <div class="grid-filters">
+        <fieldset>
+          <legend>Début</legend>
+          <div class="pair">
+            <label class="sr-only" for="m1">Mois de début</label><select id="m1"></select>
+            <label class="sr-only" for="y1">Année de début</label><select id="y1"></select>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>Fin (incluse)</legend>
+          <div class="pair">
+            <label class="sr-only" for="m2">Mois de fin</label><select id="m2"></select>
+            <label class="sr-only" for="y2">Année de fin</label><select id="y2"></select>
+          </div>
+        </fieldset>
+        <div class="field">
+          <label for="ct">Canton</label>
+          <select id="ct"></select>
+        </div>
+        <div class="field">
+          <label for="taux">Taux d'activité</label>
+          <div class="taux"><input id="taux" type="number" min="1" max="100" step="1" value="100"><span>%</span></div>
+        </div>
+      </div>
+      <div class="presets">
+        <button class="btn" type="button" data-preset="mois">Mois en cours</button>
+        <button class="btn" type="button" data-preset="trimestre">Trimestre en cours</button>
+        <button class="btn" type="button" data-preset="annee">Année en cours</button>
+        <button class="btn" type="button" data-preset="suivante">Année prochaine</button>
+      </div>
+      <p class="error" id="err" role="alert"></p>
+    </section>
+
+    <p class="print-only" id="printTitle"></p>
+
+    <section class="kpis" aria-live="polite">
+      <div class="kpi main"><span class="lbl">Jours ouvrés</span><span class="val" id="kO">–</span><span class="hint" id="kP"></span></div>
+      <div class="kpi"><span class="lbl">Fériés en semaine</span><span class="val" id="kF">–</span></div>
+      <div class="kpi"><span class="lbl">Jours de week-end</span><span class="val" id="kW">–</span></div>
+      <div class="kpi"><span class="lbl">Jours calendaires</span><span class="val" id="kC">–</span></div>
+    </section>
+
+    <div class="two-cols">
+      <section class="card">
+        <div class="card-head">
+          <h2>Détail par mois</h2>
+          <button class="btn ghost no-print" id="btnCsv" type="button">Exporter CSV</button>
+        </div>
+        <div id="bars"></div>
+      </section>
+
+      <section class="card">
+        <div class="card-head"><h2>Jours fériés de la période</h2></div>
+        <p class="note no-print">Décochez un férié s'il n'est pas chômé dans votre entreprise ou votre commune.</p>
+        <ul id="hol" class="hol-list"></ul>
+      </section>
+    </div>
+
+    <section class="card">
+      <div class="card-head">
+        <h2>Calendrier</h2>
+        <div class="legend"><span class="sw ouvre"></span>Ouvré <span class="sw ferie"></span>Férié <span class="sw weekend"></span>Week-end</div>
+      </div>
+      <div id="cal" class="cal-grid"></div>
+    </section>
+  </main>
+
+  <footer class="wrap foot">
+    <p>Les fériés retenus sont les jours officiellement chômés dans chaque canton. Certains fériés ne le sont que dans une partie du canton (communes catholiques d'Argovie, Fribourg ou Soleure, par exemple) : ajustez la liste si besoin. Les demi-jours (Sechseläuten, veille de Noël…) ne sont pas comptés.</p>
+  </footer>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
