@@ -10,6 +10,22 @@ Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) et la nu
 
 La version affichée en bas du site provient de `js/version.js`. Pour publier une nouvelle version : `sh scripts/version.sh X.Y.Z`, puis compléter ce fichier.
 
+## [1.2.0] – 2026-11-15
+
+### Ajouté
+- Choix du **jour** de début et de fin, en plus du mois et de l'année : le calcul se fait désormais au jour près (bornes incluses)
+- La liste des jours s'adapte au mois et à l'année choisis (28, 29, 30 ou 31) ; un jour trop grand est ramené au dernier jour du mois (31 → 28 en février)
+- Raccourci **« D'aujourd'hui à fin d'année »**
+- Calendrier : les jours hors période sont grisés (nouvelle légende « Hors période »)
+- Détail par mois : pour un mois incomplet, les jours pris en compte sont indiqués (« du 14 au 25 »), y compris dans l'export CSV
+- Export CSV : ligne « Période » avec les dates exactes ; nom du fichier avec les dates complètes
+- Tests : période au jour près, sur deux mois, jour unique, jour trop grand, date de fin antérieure
+
+### Modifié
+- Le lien partageable utilise des dates complètes (`?du=2026-09-14&au=2026-09-25`). Les anciens liens au mois (`?du=2027-01&au=2027-06`) restent valables : ils vont du 1er du premier mois au dernier jour du dernier mois
+- Libellés du filtre : « Du » et « Au (inclus) »
+- Titre d'impression avec les dates exactes
+
 ## [1.1.1] – 2026-11-15
 
 ### Corrigé

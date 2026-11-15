@@ -4,14 +4,14 @@ Site statique qui calcule le nombre de jours ouvrés entre un mois de début et 
 
 ## Fonctions
 
-- Filtre par **mois et année** de début et de fin (inclus), avec raccourcis : mois, trimestre, année en cours, année prochaine
+- Filtre par **jour, mois et année** de début et de fin (inclus), avec raccourcis : mois, trimestre, d'aujourd'hui à fin d'année, année en cours, année prochaine
 - Choix du **canton** (26 cantons) ; les fériés mobiles (Pâques, Ascension, Pentecôte, Fête-Dieu, Jeûne genevois, Lundi du Jeûne, Näfelser Fahrt…) sont calculés pour n'importe quelle année
 - **Taux d'activité** : nombre de jours proratisé (par ex. 80 %)
 - **Congés à déduire** : jours de congés pris sur la période (par demi-journée), pour obtenir les jours réellement à travailler
 - Détail **mois par mois**, liste des fériés de la période et **calendrier** coloré
 - Fériés **personnalisables** : décocher un férié non chômé (mémorisé par canton dans le navigateur)
 - **Export CSV** (séparateur `;`, compatible Excel) et impression / PDF
-- Lien partageable : la période et le canton sont dans l'URL (`?du=2027-01&au=2027-12&canton=VD&taux=80&conges=20`)
+- Lien partageable : la période et le canton sont dans l'URL (`?du=2027-01-01&au=2027-12-31&canton=VD&taux=80&conges=20`)
 
 ## Utilisation
 

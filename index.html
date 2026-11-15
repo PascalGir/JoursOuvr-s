@@ -6,7 +6,7 @@
   <title>Jours ouvrés en Suisse – calculateur par canton</title>
   <meta name="description" content="Calculez le nombre de jours ouvrés entre deux mois, pour chacun des 26 cantons suisses, jours fériés inclus.">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23d52b1e'/%3E%3Cpath d='M13 7h6v6h6v6h-6v6h-6v-6H7v-6h6z' fill='%23fff'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="css/style.css?v=1.1.1">
+  <link rel="stylesheet" href="css/style.css?v=1.2.0">
 </head>
 <body>
   <header class="site-header">
@@ -27,15 +27,17 @@
       <h2 id="t-filtre" class="sr-only">Filtre</h2>
       <div class="grid-filters">
         <fieldset>
-          <legend>Début</legend>
+          <legend>Du</legend>
           <div class="pair">
+            <label class="sr-only" for="d1">Jour de début</label><select id="d1"></select>
             <label class="sr-only" for="m1">Mois de début</label><select id="m1"></select>
             <label class="sr-only" for="y1">Année de début</label><select id="y1"></select>
           </div>
         </fieldset>
         <fieldset>
-          <legend>Fin (incluse)</legend>
+          <legend>Au (inclus)</legend>
           <div class="pair">
+            <label class="sr-only" for="d2">Jour de fin</label><select id="d2"></select>
             <label class="sr-only" for="m2">Mois de fin</label><select id="m2"></select>
             <label class="sr-only" for="y2">Année de fin</label><select id="y2"></select>
           </div>
@@ -56,6 +58,7 @@
       <div class="presets">
         <button class="btn" type="button" data-preset="mois">Mois en cours</button>
         <button class="btn" type="button" data-preset="trimestre">Trimestre en cours</button>
+        <button class="btn" type="button" data-preset="reste">D'aujourd'hui à fin d'année</button>
         <button class="btn" type="button" data-preset="annee">Année en cours</button>
         <button class="btn" type="button" data-preset="suivante">Année prochaine</button>
       </div>
@@ -92,7 +95,7 @@
     <section class="card">
       <div class="card-head">
         <h2>Calendrier</h2>
-        <div class="legend"><span class="sw ouvre"></span>Ouvré <span class="sw ferie"></span>Férié <span class="sw weekend"></span>Week-end</div>
+        <div class="legend"><span class="sw ouvre"></span>Ouvré <span class="sw ferie"></span>Férié <span class="sw weekend"></span>Week-end <span class="sw hors"></span>Hors période</div>
       </div>
       <div id="cal" class="cal-grid"></div>
     </section>
@@ -103,6 +106,6 @@
     <p>Version <span id="version"></span> · <a href="https://github.com/PascalGir/JoursOuvr-s/blob/main/CHANGELOG.md">Historique des versions</a></p>
   </footer>
 
-  <script type="module" src="js/app.js?v=1.1.1"></script>
+  <script type="module" src="js/app.js?v=1.2.0"></script>
 </body>
 </html>

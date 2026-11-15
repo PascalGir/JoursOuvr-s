@@ -99,22 +99,26 @@ export function workingDays({ ouvres, taux = 100, conges = 0 }) {
   return { theoriques, conges, net: Math.round((theoriques - conges) * 10) / 10 };
 }
 
+export const daysInMonth = (y, m) => new Date(y, m, 0).getDate();
+
 /**
- * Compte les jours ouvrés (lundi–vendredi hors fériés) entre deux mois inclus.
- * @param {{from:{y:number,m:number}, to:{y:number,m:number}, canton:string, excluded?:Set<string>}} opts
- *   m est 1–12 ; excluded contient les identifiants de fériés à ne PAS compter comme fériés.
+ * Compte les jours ouvrés (lundi–vendredi hors fériés) entre deux dates incluses.
+ * @param {{from:{y:number,m:number,d?:number}, to:{y:number,m:number,d?:number}, canton:string, excluded?:Set<string>}} opts
+ *   m est 1–12. Sans jour : début = 1er du mois, fin = dernier jour du mois.
+ *   excluded contient les identifiants de fériés à ne PAS compter comme fériés.
  */
 export function computeRange({ from, to, canton, excluded = new Set() }) {
-  const start = from.y * 12 + (from.m - 1);
-  const end = to.y * 12 + (to.m - 1);
-  if (end < start) throw new RangeError('La fin doit être postérieure ou égale au début.');
+  const d1 = Math.min(from.d || 1, daysInMonth(from.y, from.m));
+  const d2 = Math.min(to.d || daysInMonth(to.y, to.m), daysInMonth(to.y, to.m));
+  const startDate = new Date(from.y, from.m - 1, d1);
+  const endDate = new Date(to.y, to.m - 1, d2);
+  if (endDate < startDate) throw new RangeError('La date de fin doit être postérieure ou égale à la date de début.');
 
   const map = new Map();
   const holidays = [];
   for (let y = from.y; y <= to.y; y++) {
     for (const h of holidaysFor(y, canton)) {
-      const t = h.date.getFullYear() * 12 + h.date.getMonth();
-      if (t < start || t > end) continue;
+      if (h.date < startDate || h.date > endDate) continue;
       const wd = h.date.getDay();
       const item = { ...h, iso: isoDate(h.date), weekend: wd === 0 || wd === 6, compte: !excluded.has(h.id) };
       holidays.push(item);
@@ -124,26 +128,32 @@ export function computeRange({ from, to, canton, excluded = new Set() }) {
 
   const months = [];
   const totals = { ouvres: 0, feries: 0, weekend: 0, jours: 0 };
+  const start = from.y * 12 + (from.m - 1);
+  const end = to.y * 12 + (to.m - 1);
   for (let t = start; t <= end; t++) {
     const y = Math.floor(t / 12), m = t % 12;
-    const row = { y, m: m + 1, ouvres: 0, feries: 0, weekend: 0, jours: 0, days: [] };
+    const row = { y, m: m + 1, ouvres: 0, feries: 0, weekend: 0, jours: 0, partiel: false, days: [] };
     const d = new Date(y, m, 1);
     while (d.getMonth() === m) {
       const wd = d.getDay();
-      const iso = isoDate(d);
-      const hol = map.get(iso);
-      let type = 'ouvre';
-      if (wd === 0 || wd === 6) type = 'weekend';
+      const hol = map.get(isoDate(d));
+      let type;
+      if (d < startDate || d > endDate) type = 'hors';
+      else if (wd === 0 || wd === 6) type = 'weekend';
       else if (hol) type = 'ferie';
-      row.jours++;
-      if (type === 'ouvre') row.ouvres++;
-      else if (type === 'weekend') row.weekend++;
-      else row.feries++;
+      else type = 'ouvre';
+      if (type === 'hors') row.partiel = true;
+      else {
+        row.jours++;
+        if (type === 'ouvre') row.ouvres++;
+        else if (type === 'weekend') row.weekend++;
+        else row.feries++;
+      }
       row.days.push({ day: d.getDate(), wd, type, nom: hol ? hol.nom : null });
       d.setDate(d.getDate() + 1);
     }
     for (const k of Object.keys(totals)) totals[k] += row[k];
     months.push(row);
   }
-  return { months, totals, holidays };
+  return { months, totals, holidays, startDate, endDate };
 }

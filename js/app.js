@@ -1,5 +1,5 @@
-import { CANTONS, computeRange, workingDays } from './holidays.js?v=1.1.1';
-import { VERSION } from './version.js?v=1.1.1';
+import { CANTONS, computeRange, workingDays, daysInMonth } from './holidays.js?v=1.2.0';
+import { VERSION } from './version.js?v=1.2.0';
 
 const MOIS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août',
   'septembre', 'octobre', 'novembre', 'décembre'];
@@ -30,20 +30,33 @@ fillSelect($('ct'), Object.entries(CANTONS)
   .sort((a, b) => a[1].localeCompare(b[1], 'fr'))
   .map(([code, nom]) => [code, `${nom} (${code})`]));
 
+// Liste des jours selon le mois et l'année choisis (28 à 31), en gardant le jour sélectionné si possible.
+function syncDays(n, wanted) {
+  const el = $(`d${n}`);
+  const max = daysInMonth(+$(`y${n}`).value, +$(`m${n}`).value);
+  const cur = wanted ?? +el.value;
+  if (el.options.length !== max) fillSelect(el, Array.from({ length: max }, (_, i) => [i + 1, i + 1]));
+  el.value = Math.min(Math.max(cur || 1, 1), max);
+}
+
 // État initial : paramètres d'URL, puis préférences enregistrées, puis valeurs par défaut.
-function parseYm(s) {
-  const m = /^(\d{4})-(\d{1,2})$/.exec(s || '');
-  return m ? { y: +m[1], m: +m[2] } : null;
+// Formats acceptés : AAAA-MM-JJ ou AAAA-MM (début = 1er du mois, fin = dernier jour).
+function parseDate(s, fin) {
+  const m = /^(\d{4})-(\d{1,2})(?:-(\d{1,2}))?$/.exec(s || '');
+  if (!m) return null;
+  const y = +m[1], mo = +m[2];
+  if (mo < 1 || mo > 12) return null;
+  return { y, m: mo, d: m[3] ? +m[3] : (fin ? daysInMonth(y, mo) : 1) };
 }
 const params = new URLSearchParams(location.search);
-const from = parseYm(params.get('du')) || { y: thisYear, m: 1 };
-const to = parseYm(params.get('au')) || { y: thisYear, m: 12 };
+const from = parseDate(params.get('du'), false) || { y: thisYear, m: 1, d: 1 };
+const to = parseDate(params.get('au'), true) || { y: thisYear, m: 12, d: 31 };
 const canton = CANTONS[params.get('canton')] ? params.get('canton') : store.get('canton', 'VD');
 const taux = +params.get('taux') || store.get('taux', 100);
 const conges = Math.max(0, +(params.get('conges') || '0').replace(',', '.') || 0);
 
-$('m1').value = from.m; $('y1').value = from.y;
-$('m2').value = to.m; $('y2').value = to.y;
+$('m1').value = from.m; $('y1').value = from.y; syncDays(1, from.d);
+$('m2').value = to.m; $('y2').value = to.y; syncDays(2, to.d);
 $('ct').value = canton;
 $('taux').value = taux;
 $('conges').value = conges;
@@ -54,18 +67,29 @@ let last = null;
 
 function readState() {
   return {
-    from: { y: +$('y1').value, m: +$('m1').value },
-    to: { y: +$('y2').value, m: +$('m2').value },
+    from: { y: +$('y1').value, m: +$('m1').value, d: +$('d1').value },
+    to: { y: +$('y2').value, m: +$('m2').value, d: +$('d2').value },
     canton: $('ct').value,
     taux: Math.min(100, Math.max(1, Math.round(+$('taux').value || 100))),
     conges: +String($('conges').value || '0').replace(',', '.'),
   };
 }
 
+const pad2 = (n) => String(n).padStart(2, '0');
+const ymd = (x) => `${x.y}-${pad2(x.m)}-${pad2(x.d)}`;
+const dateFr = (x) => `${x.d} ${MOIS[x.m - 1]} ${x.y}`;
+const monthLabel = (r) => {
+  const base = `${MOIS[r.m - 1].slice(0, 4)}. ${r.y}`;
+  if (!r.partiel) return { base, part: '' };
+  const inside = r.days.filter((d) => d.type !== 'hors');
+  const a = inside[0].day, b = inside[inside.length - 1].day;
+  return { base, part: a === b ? `le ${a}` : `du ${a} au ${b}` };
+};
+
 function updateUrl(s) {
   const p = new URLSearchParams({
-    du: `${s.from.y}-${String(s.from.m).padStart(2, '0')}`,
-    au: `${s.to.y}-${String(s.to.m).padStart(2, '0')}`,
+    du: ymd(s.from),
+    au: ymd(s.to),
     canton: s.canton,
   });
   if (s.taux !== 100) p.set('taux', s.taux);
@@ -107,14 +131,14 @@ function render() {
   $('kW').textContent = t.weekend;
   $('kC').textContent = t.jours;
 
-  const periode = `${MOIS[s.from.m - 1]} ${s.from.y} – ${MOIS[s.to.m - 1]} ${s.to.y}`;
+  const periode = `du ${dateFr(s.from)} au ${dateFr(s.to)}`;
   $('printTitle').textContent = `${CANTONS[s.canton]} · ${periode}`;
 
   // Barres par mois
   const max = Math.max(...res.months.map((r) => r.ouvres), 1);
   $('bars').innerHTML = res.months.map((r) => `
     <div class="bar-row">
-      <span class="bar-lbl">${MOIS[r.m - 1].slice(0, 4)}. ${r.y}</span>
+      <span class="bar-lbl">${monthLabel(r).base}${r.partiel ? `<small>${monthLabel(r).part}</small>` : ''}</span>
       <span class="bar-track"><span class="bar" style="width:${Math.round((r.ouvres / max) * 100)}%"></span></span>
       <span class="bar-val">${r.ouvres}${s.taux < 100 ? `<small> · ${nf.format(r.ouvres * s.taux / 100)}</small>` : ''}</span>
     </div>`).join('');
@@ -147,8 +171,8 @@ function render() {
 }
 
 function setRange(f, t) {
-  $('m1').value = f.m; $('y1').value = f.y;
-  $('m2').value = t.m; $('y2').value = t.y;
+  $('m1').value = f.m; $('y1').value = f.y; syncDays(1, f.d || 1);
+  $('m2').value = t.m; $('y2').value = t.y; syncDays(2, t.d || daysInMonth(t.y, t.m));
   render();
 }
 
@@ -157,13 +181,16 @@ document.querySelectorAll('[data-preset]').forEach((b) => b.addEventListener('cl
   switch (b.dataset.preset) {
     case 'mois': setRange({ y: thisYear, m }, { y: thisYear, m }); break;
     case 'trimestre': { const q = Math.floor((m - 1) / 3) * 3 + 1; setRange({ y: thisYear, m: q }, { y: thisYear, m: q + 2 }); break; }
+    case 'reste': setRange({ y: thisYear, m, d: now.getDate() }, { y: thisYear, m: 12 }); break;
     case 'annee': setRange({ y: thisYear, m: 1 }, { y: thisYear, m: 12 }); break;
     case 'suivante': setRange({ y: thisYear + 1, m: 1 }, { y: thisYear + 1, m: 12 }); break;
     default: break;
   }
 }));
 
-['m1', 'y1', 'm2', 'y2', 'ct'].forEach((id) => $(id).addEventListener('change', render));
+['m1', 'y1'].forEach((id) => $(id).addEventListener('change', () => { syncDays(1); render(); }));
+['m2', 'y2'].forEach((id) => $(id).addEventListener('change', () => { syncDays(2); render(); }));
+['d1', 'd2', 'ct'].forEach((id) => $(id).addEventListener('change', render));
 $('taux').addEventListener('input', render);
 $('conges').addEventListener('input', render);
 
@@ -185,7 +212,8 @@ $('btnCsv').addEventListener('click', () => {
   const head = ['Mois', 'Jours ouvrés', 'Fériés en semaine', 'Week-end', 'Jours calendaires'];
   if (s.taux < 100) head.push(`Jours à ${s.taux} %`);
   const rows = res.months.map((r) => {
-    const row = [`${MOIS[r.m - 1]} ${r.y}`, r.ouvres, r.feries, r.weekend, r.jours];
+    const lbl = monthLabel(r);
+    const row = [`${MOIS[r.m - 1]} ${r.y}${lbl.part ? ` (${lbl.part})` : ''}`, r.ouvres, r.feries, r.weekend, r.jours];
     if (s.taux < 100) row.push((r.ouvres * s.taux / 100).toFixed(1).replace('.', ','));
     return row;
   });
@@ -194,13 +222,13 @@ $('btnCsv').addEventListener('click', () => {
   if (s.taux < 100) total.push((t.ouvres * s.taux / 100).toFixed(1).replace('.', ','));
   const fmt = (n) => String(n).replace('.', ',');
   const pad = Array(head.length - 2).fill('');
-  const extra = [[], ['Canton', CANTONS[s.canton], ...pad]];
+  const extra = [[], ['Canton', CANTONS[s.canton], ...pad], ['Période', `du ${dateFr(s.from)} au ${dateFr(s.to)}`, ...pad]];
   if (s.taux < 100) extra.push([`Jours ouvrés à ${s.taux} %`, fmt(net.theoriques), ...pad]);
   extra.push(['Congés déduits', fmt(s.conges), ...pad], ['Jours à travailler', fmt(net.net), ...pad]);
   const csv = '\ufeff' + [head, ...rows, total, ...extra].map((r) => r.join(';')).join('\r\n');
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
-  a.download = `jours-ouvres-${s.canton}-${s.from.y}-${String(s.from.m).padStart(2, '0')}_${s.to.y}-${String(s.to.m).padStart(2, '0')}.csv`;
+  a.download = `jours-ouvres-${s.canton}-${ymd(s.from)}_${ymd(s.to)}.csv`;
   document.body.appendChild(a);
   a.click();
   a.remove();

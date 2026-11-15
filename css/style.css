@@ -55,7 +55,7 @@ h2 { font-size: 1rem; }
 .grid-filters { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: .9rem; }
 fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
 legend, .field > label { font-size: .85rem; color: var(--texte-2); margin-bottom: .3rem; display: block; padding: 0; }
-.pair { display: grid; grid-template-columns: 1.4fr 1fr; gap: .4rem; }
+.pair { display: grid; grid-template-columns: .8fr 1.6fr 1.1fr; gap: .4rem; }
 select, input[type=number] {
   width: 100%; height: 38px; padding: 0 .6rem; font: inherit; color: var(--texte);
   background: var(--carte); border: 1px solid var(--bord); border-radius: 8px;
@@ -86,8 +86,9 @@ select:focus, input:focus, .btn:focus-visible { outline: 2px solid var(--accent)
 .two-cols .card { margin-bottom: 1rem; }
 @media (max-width: 760px) { .two-cols { grid-template-columns: minmax(0, 1fr); } }
 
-.bar-row { display: grid; grid-template-columns: 82px 1fr auto; align-items: center; gap: .6rem; font-size: .9rem; padding: 3px 0; }
-.bar-lbl { color: var(--texte-2); }
+.bar-row { display: grid; grid-template-columns: 96px 1fr auto; align-items: center; gap: .6rem; font-size: .9rem; padding: 3px 0; }
+.bar-lbl { color: var(--texte-2); line-height: 1.2; }
+.bar-lbl small { display: block; font-size: .75rem; }
 .bar-track { background: var(--fond); border-radius: 4px; height: 10px; overflow: hidden; }
 .bar { display: block; height: 100%; background: var(--accent); border-radius: 4px; }
 .bar-val { font-variant-numeric: tabular-nums; text-align: right; min-width: 2ch; }
@@ -109,6 +110,7 @@ select:focus, input:focus, .btn:focus-visible { outline: 2px solid var(--accent)
 .sw.ouvre { background: var(--carte); }
 .sw.ferie { background: var(--rouge-pale); border-color: var(--rouge); }
 .sw.weekend { background: var(--we); }
+.sw.hors { background: transparent; border-style: dashed; }
 
 .cal-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem; }
 .month { border: 1px solid var(--bord); border-radius: 8px; padding: .6rem; }
@@ -118,6 +120,7 @@ select:focus, input:focus, .btn:focus-visible { outline: 2px solid var(--accent)
 .m-grid .wd { color: var(--texte-2); font-size: .72rem; padding-bottom: 2px; }
 .m-grid .d { padding: 3px 0; border-radius: 4px; font-variant-numeric: tabular-nums; }
 .m-grid .d.weekend { background: var(--we); color: var(--texte-2); }
+.m-grid .d.hors { color: var(--texte-2); opacity: .35; }
 .m-grid .d.ferie { background: var(--rouge-pale); color: var(--rouge); font-weight: 600; cursor: help; }
 
 .foot { color: var(--texte-2); font-size: .82rem; padding-bottom: 2rem; }
@@ -133,6 +136,6 @@ select:focus, input:focus, .btn:focus-visible { outline: 2px solid var(--accent)
 }
 
 @media (min-width: 960px) {
-  .grid-filters { grid-template-columns: 1.6fr 1.6fr 1.3fr .8fr .9fr; }
+  .grid-filters { grid-template-columns: 2fr 2fr 1.3fr .8fr .9fr; }
   .kpis { grid-template-columns: 1.5fr repeat(5, minmax(0, 1fr)); }
 }

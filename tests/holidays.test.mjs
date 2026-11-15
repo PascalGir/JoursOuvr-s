@@ -45,6 +45,29 @@ test('férié exclu par l\'utilisateur', () => {
 
 test('intervalle inversé refusé', () => {
   assert.throws(() => computeRange({ from: { y: 2027, m: 5 }, to: { y: 2027, m: 4 }, canton: 'ZH' }), RangeError);
+  assert.throws(() => computeRange({ from: { y: 2027, m: 5, d: 20 }, to: { y: 2027, m: 5, d: 19 }, canton: 'ZH' }), RangeError);
+});
+
+test('période au jour près', () => {
+  // VD, du lundi 14 au vendredi 25 septembre 2026 : 10 jours de semaine, dont le Lundi du Jeûne (21.9)
+  const r = computeRange({ from: { y: 2026, m: 9, d: 14 }, to: { y: 2026, m: 9, d: 25 }, canton: 'VD' });
+  assert.equal(r.totals.jours, 12);
+  assert.equal(r.totals.ouvres, 9);
+  assert.equal(r.totals.feries, 1);
+  assert.equal(r.holidays.length, 1);
+  // Un seul jour
+  assert.equal(computeRange({ from: { y: 2026, m: 9, d: 21 }, to: { y: 2026, m: 9, d: 21 }, canton: 'VD' }).totals.ouvres, 0);
+  assert.equal(computeRange({ from: { y: 2026, m: 9, d: 22 }, to: { y: 2026, m: 9, d: 22 }, canton: 'VD' }).totals.ouvres, 1);
+  // Sur deux mois : 28.12.2026 → 8.1.2027 (Saint-Berchtold 2.1 = samedi)
+  const r2 = computeRange({ from: { y: 2026, m: 12, d: 28 }, to: { y: 2027, m: 1, d: 8 }, canton: 'VD' });
+  assert.equal(r2.totals.ouvres, 9); // 28–31.12 (4) + 4–8.1 (5) ; 1.1 férié
+  assert.equal(r2.months.length, 2);
+  assert.ok(r2.months[0].partiel && r2.months[1].partiel);
+});
+
+test('jour trop grand ramené à la fin du mois', () => {
+  const r = computeRange({ from: { y: 2027, m: 2, d: 31 }, to: { y: 2027, m: 2, d: 31 }, canton: 'ZH' });
+  assert.equal(r.totals.jours, 1);
 });
 
 test('déduction des congés', () => {
