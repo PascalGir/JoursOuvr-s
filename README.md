@@ -56,7 +56,7 @@ npm run test:report                      # tests + rapport (reports/rapport.html
 
 - **Tests du moteur** (`tests/holidays.test.mjs`, `tests/i18n.test.mjs`) : dates de Pâques, fériés de chaque pays et région, reports britanniques, totaux de référence, traductions complètes.
 - **Tests de l'interface** (`tests/ui.test.mjs`) : le site est ouvert dans Chromium, sur ordinateur et sur téléphone simulé ; un robot clique, saisit et vérifie les résultats affichés (périodes, erreurs, fériés, partage, impression, CSV, langues…).
-- **Rapport automatisé** (`scripts/test-report.mjs`) : nombre de tests réussis, **couverture des lignes** (Node pour le moteur, Chromium pour la page) par fichier, avec les lignes non couvertes.
+- **Rapport automatisé** (`scripts/test-report.mjs`), en tableaux expliqués : verdict, indicateurs clés (tests réussis, **couverture du code**…), synthèse par domaine, couverture par fichier et détail de chaque test. Le domaine et l'explication de chaque test sont dans `scripts/test-catalogue.mjs` (à compléter pour tout nouveau test).
 - **Objectifs** : couverture **≥ 90 %** et tests réussis **≥ 90 %**. En dessous, l'exécution est en échec (modifiables avec `COVERAGE_MIN` et `PASS_RATE_MIN`).
 - **Sur GitHub** : à chaque envoi de code, le workflow `Tests` publie le rapport dans le résumé de l'exécution (onglet **Actions**) et le joint en fichier (`rapport-tests-N`, conservé 90 jours). Le badge en haut de cette page indique l'état de la dernière exécution.
 

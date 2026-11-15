@@ -50,12 +50,22 @@ async function open(query = '', { locale = 'fr-CH', mobile = false, init } = {})
   await page.coverage.startJSCoverage({ resetOnNavigation: false });
   await page.goto(base + query);
   await page.waitForSelector('#kN');
-  page.closeAll = async () => {
+  const collect = async () => {
     const entries = await page.coverage.stopJSCoverage();
     for (const e of entries) {
       const p = new URL(e.url).pathname;
       if (p.startsWith('/js/')) coverage.push({ file: p.slice(1), source: e.source, functions: e.functions });
     }
+  };
+  // Un rechargement ferait perdre la couverture déjà mesurée : on l'enregistre avant de recharger.
+  page.reloadKeepingCoverage = async () => {
+    await collect();
+    await page.coverage.startJSCoverage({ resetOnNavigation: false });
+    await page.reload();
+    await page.waitForSelector('#kN');
+  };
+  page.closeAll = async () => {
+    await collect();
     await ctx.close();
   };
   return { page, errors };
@@ -91,7 +101,7 @@ test('anglais par défaut hors navigateur francophone, puis passage en français
   await page.selectOption('#lang', 'fr');
   assert.equal(await text(page, 'h1'), 'Calculateur de jours ouvrés');
   assert.match(await text(page, '#hol'), /Nouvel An/);
-  await page.reload();
+  await page.reloadKeepingCoverage();
   assert.equal(await text(page, 'h1'), 'Calculateur de jours ouvrés');
   assert.deepEqual(errors, []);
   await page.closeAll();
@@ -222,7 +232,7 @@ test('fériés : décocher, cocher un jour d\'usage, rétablir la liste', async 
   await page.check('input[data-id="ascension"]');
   assert.equal(await text(page, '#kO'), '255');
   await page.uncheck('input[data-id="ascension"]');
-  await page.reload();
+  await page.reloadKeepingCoverage();
   assert.equal(await text(page, '#kO'), '256');
   await page.click('#btnRestore');
   assert.equal(await text(page, '#kO'), '256');

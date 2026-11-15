@@ -10,6 +10,19 @@ Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) et la nu
 
 La version affichée en bas du site provient de `js/version.js`. Pour publier une nouvelle version : `sh scripts/version.sh X.Y.Z`, puis compléter ce fichier.
 
+## [1.5.1] – 2026-11-15
+
+### Modifié
+- **Rapport de tests lisible et synthétique**, sous forme de tableaux expliqués, dans le résumé de chaque exécution GitHub et dans le rapport HTML joint :
+  1. verdict en une phrase, puis **indicateurs clés** (tests réussis, couverture du code, fonctions exécutées, échecs, durée) avec objectif, statut et « ce que cela signifie »
+  2. **synthèse par domaine** (calcul, jours fériés par pays, saisie et erreurs, affichage, personnalisation, partage et exports, langues, téléphone, compatibilité) avec ce que chaque domaine garantit
+  3. **couverture par fichier** avec le rôle de chaque fichier et, s'il y en a, le code jamais exécuté
+  4. **détail des tests** par domaine, chacun expliqué en une phrase ; tableau dédié aux tests en échec
+- Nouveau catalogue `scripts/test-catalogue.mjs` : domaine et explication de chaque test ; le rapport signale tout test non expliqué
+
+### Corrigé
+- Mesure de la couverture : le code exécuté avant un rechargement de page dans un test était perdu (couverture sous-estimée). Couverture réelle : 100 % des lignes
+
 ## [1.5.0] – 2026-11-15
 
 ### Ajouté

@@ -1,8 +1,8 @@
-import { COUNTRIES, computeRange, workingDays, daysInMonth, ES_ANNEES_OFFICIELLES } from './holidays.js?v=1.5.0';
-import { VERSION } from './version.js?v=1.5.0';
+import { COUNTRIES, computeRange, workingDays, daysInMonth, ES_ANNEES_OFFICIELLES } from './holidays.js?v=1.5.1';
+import { VERSION } from './version.js?v=1.5.1';
 import {
   detectLang, setLang, getLang, locale, t, holidayName, regionName, regionLabel, countryName, countryNote, sourceLabel,
-} from './i18n.js?v=1.5.0';
+} from './i18n.js?v=1.5.1';
 
 const MAX_CAL = 36;
 const $ = (id) => document.getElementById(id);
