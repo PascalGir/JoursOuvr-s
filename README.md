@@ -28,7 +28,7 @@ Le site est prévu pour **GitHub Pages** : Settings → Pages → Source « Depl
 
 ## Versions
 
-La version courante est affichée en bas du site. L'historique détaillé est dans [CHANGELOG.md](CHANGELOG.md). À chaque évolution : mettre à jour `js/version.js` et ajouter une entrée au changelog.
+La version courante est affichée en bas du site. L'historique détaillé est dans [CHANGELOG.md](CHANGELOG.md). À chaque évolution : lancer `sh scripts/version.sh X.Y.Z` (met à jour le numéro et force le rechargement des fichiers dans les navigateurs), puis ajouter une entrée au changelog.
 
 ## Tests
 

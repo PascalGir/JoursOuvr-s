@@ -1,5 +1,5 @@
-import { CANTONS, computeRange, workingDays } from './holidays.js';
-import { VERSION } from './version.js';
+import { CANTONS, computeRange, workingDays } from './holidays.js?v=1.1.1';
+import { VERSION } from './version.js?v=1.1.1';
 
 const MOIS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août',
   'septembre', 'octobre', 'novembre', 'décembre'];

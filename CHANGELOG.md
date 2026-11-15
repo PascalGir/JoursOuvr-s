@@ -8,7 +8,15 @@ Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) et la nu
 - **MINEUR** (1.1.0) : nouvelle fonctionnalité compatible avec l'existant
 - **CORRECTIF** (1.0.1) : correction d'erreur (par exemple un jour férié mal défini)
 
-La version affichée en bas du site provient de `js/version.js`, à mettre à jour en même temps que ce fichier.
+La version affichée en bas du site provient de `js/version.js`. Pour publier une nouvelle version : `sh scripts/version.sh X.Y.Z`, puis compléter ce fichier.
+
+## [1.1.1] – 2026-11-15
+
+### Corrigé
+- Sur téléphone, « Jours à travailler » restait à « – » et les congés n'étaient pas déduits : le navigateur mobile avait gardé en cache le script de la version 1.0.0 alors que la page était déjà en 1.1.0. Les fichiers CSS et JavaScript sont désormais appelés avec le numéro de version (`?v=1.1.1`), ce qui force leur rechargement à chaque nouvelle version.
+
+### Ajouté
+- Script `scripts/version.sh` qui met à jour le numéro de version à tous les endroits nécessaires (`js/version.js`, `index.html`, imports de `js/app.js`)
 
 ## [1.1.0] – 2026-11-15
 
