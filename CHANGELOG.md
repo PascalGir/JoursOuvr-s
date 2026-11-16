@@ -10,6 +10,11 @@ Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) et la nu
 
 La version affichée en bas du site provient de `js/version.js`. Pour publier une nouvelle version : `sh scripts/version.sh X.Y.Z`, puis compléter ce fichier.
 
+## [Non publié]
+
+### Corrigé
+- Rapport de tests : décompte des fonctions exécutées. Les fonctions de même nom (« anonymous_1 », « date »…) étaient fusionnées, ce qui affichait 254 / 343 (74,1 %) au lieu de 341 / 343 (99,4 %). Seules restent non appelées les deux minuteries de l'interface (masquage du message « Lien copié » après 4 s, libération du fichier CSV après 1 s), qui se déclenchent après la fin des tests
+
 ## [1.5.1] – 2026-11-15
 
 ### Modifié

@@ -88,6 +88,7 @@ function executableLines(source) {
 // Couverture Node (lcov) : lignes exécutées et fonctions, par fichier.
 const nodeLines = new Map();
 const nodeFns = new Map();
+const fnIndex = new Map();
 for (const s of SUITES.filter((x) => x.nodeCoverage)) {
   const file = path.join(REPORTS, `${s.id}.lcov`);
   if (!fs.existsSync(file)) continue;
@@ -96,18 +97,20 @@ for (const s of SUITES.filter((x) => x.nodeCoverage)) {
     if (raw.startsWith('SF:')) {
       cur = path.relative(ROOT, raw.slice(3)).split(path.sep).join('/');
       if (!nodeLines.has(cur)) nodeLines.set(cur, new Set());
-      if (!nodeFns.has(cur)) nodeFns.set(cur, new Map());
+      if (!nodeFns.has(cur)) nodeFns.set(cur, []);
+      fnIndex.set(cur, -1);
     } else if (raw.startsWith('DA:') && cur) {
       const [ln, cnt] = raw.slice(3).split(',').map(Number);
       if (cnt > 0) nodeLines.get(cur).add(ln);
-    } else if (raw.startsWith('FNDA:') && cur) {
-      const [cnt, name] = raw.slice(5).split(/,(.*)/s);
-      const fns = nodeFns.get(cur);
-      fns.set(name, (fns.get(name) || 0) + Number(cnt));
     } else if (raw.startsWith('FN:') && cur) {
-      const name = raw.slice(3).split(/,(.*)/s)[1];
-      const fns = nodeFns.get(cur);
-      if (!fns.has(name)) fns.set(name, 0);
+      // Les noms se répètent (« anonymous_1 », « date »…) : chaque fonction est repérée par son rang.
+      nodeFns.get(cur).push({ line: Number(raw.slice(3).split(',')[0]), count: 0 });
+      fnIndex.set(cur, (fnIndex.get(cur) ?? -1));
+    } else if (raw.startsWith('FNDA:') && cur) {
+      const i = fnIndex.get(cur) + 1;
+      fnIndex.set(cur, i);
+      const f = nodeFns.get(cur)[i];
+      if (f) f.count += Number(raw.slice(5).split(',')[0]);
     }
   }
 }
@@ -127,7 +130,7 @@ for (const e of uiEntries) {
   const fns = browserFns.get(e.file) || new Map();
   for (const f of e.functions) {
     if (!f.functionName && f.ranges[0].startOffset === 0) continue; // le module lui-même
-    const key = `${f.functionName || '(anonyme)'}@${f.ranges[0].startOffset}`;
+    const key = f.ranges[0].startOffset;
     fns.set(key, (fns.get(key) || 0) + (f.ranges[0].count > 0 ? 1 : 0));
   }
   browserFns.set(e.file, fns);
@@ -146,10 +149,19 @@ const files = jsFiles.map((file) => {
     if (ok) covered++; else uncovered.push(line);
   }
   // Fonctions : exécutées dans Node ou dans le navigateur.
+  // Une fonction compte comme exécutée si elle l'a été dans Node ou dans le navigateur (repérée par sa ligne).
   const nf = nodeFns.get(file);
   const bf = browserFns.get(file);
-  const fnTotal = Math.max(nf ? nf.size : 0, bf ? bf.size : 0);
-  const fnHit = Math.max(nf ? [...nf.values()].filter((c) => c > 0).length : 0, bf ? [...bf.values()].filter((c) => c > 0).length : 0);
+  const lineOf = (offset) => source.slice(0, offset).split('\n').length;
+  const browserHitLines = new Set(bf ? [...bf].filter(([, c]) => c > 0).map(([o]) => lineOf(o)) : []);
+  let fnTotal, fnHit;
+  if (nf && nf.length) {
+    fnTotal = nf.length;
+    fnHit = nf.filter((f) => f.count > 0 || browserHitLines.has(f.line)).length;
+  } else {
+    fnTotal = bf ? bf.size : 0;
+    fnHit = bf ? [...bf.values()].filter((c) => c > 0).length : 0;
+  }
   return {
     file, lines: lines.length, covered, pct: lines.length ? (covered / lines.length) * 100 : 100,
     functions: fnTotal, functionsHit: fnHit, uncovered,
